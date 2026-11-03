@@ -21,14 +21,14 @@ def parse_config(text):
     try:
         data = json.loads(text)
     except ValueError:
-        raise ValueError("config.json is not valid JSON")
+        raise ValueError("config.json is not valid JSON") from None
 
     if type(data) is not dict:
         raise ValueError("config.json must be a JSON object")
 
     mood_sets = data.get("moods")
     if type(mood_sets) is not list or not mood_sets:
-        raise ValueError("config.json needs a non-empty \"moods\" list")
+        raise ValueError('config.json needs a non-empty "moods" list')
 
     for set_number, mood_set in enumerate(mood_sets):
         if type(mood_set) is not list or not mood_set:
