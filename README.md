@@ -1,8 +1,8 @@
-# Mood Badger for Badger 2350
+# Badger 2350 Mood Display
 
-Mood Badger turns a Pimoroni [Badger 2350](https://github.com/pimoroni/badger2350) e-ink badge into a mood display. Press a button to show how you feel, with a picture and a word, and the badge keeps showing it even while asleep.
+Mood Badger is a visual communication aid for neurodivergent children. It turns a Pimoroni [Badger 2350](https://github.com/pimoroni/badger2350) e-ink badge into a mood display: the child presses a button to show how they feel, with a picture and a word, so they can share their emotional state without having to say it. The e-ink screen keeps showing the mood even while the badge is asleep.
 
-It is a port of [MoodBadger](https://github.com/simonpainter/MoodBadger) by Simon Painter, written for the original Badger 2040. MoodBadger is a visual communication aid that helps neurodivergent children show their emotional state without having to say it.
+It is a port of [MoodBadger](https://github.com/simonpainter/MoodBadger) by Simon Painter, written for the original Badger 2040.
 
 ![Mood Badger showing every mood and set in the simulator](docs/images/sim-tour.png)
 
@@ -95,7 +95,7 @@ Moods live in `config.json` inside the app folder. Each set is a list of `[label
 
 - Images go in the app's `assets` folder.
 - A set holds up to 16 moods, the number of markers that fit down the right edge.
-- Keep labels short. Labels use the Smart font and must fit between the set arrows; longer ones switch to the smaller Winds font.
+- Keep labels short. Labels use the Ziplock font and must fit between the set arrows; longer ones step down to the smaller Smart font, then Winds.
 - If an image is missing, the label still shows. If `config.json` is broken, the badge shows an error that names it.
 
 For your own pictures, any image editor will do: save a 122×136 PNG using black, white and greys. The included images are generated from MoodBadger's JPEGs by `python -m tools.convert_moods`, which fits each one into 122×136 and reduces it to the panel's four greys.
