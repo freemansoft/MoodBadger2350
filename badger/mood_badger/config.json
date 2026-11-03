@@ -1,14 +1,23 @@
 {
   "moods": [
     [
-      ["Chilled", "happy.png"],
-      ["Sad", "sad.png"],
-      ["Bored", "bored.png"],
-      ["Annoyed", "annoyed.png"],
-      ["Angry", "angry.png"],
-      ["Embarrassed", "embarassed.png"],
-      ["Surprised", "surprised.png"],
-      ["Very Happy", "very_happy.png"]
+      ["Chilled", "sent_chilled.png"],
+      ["Sad", "sent_sad.png"],
+      ["Angry", "sent_angry.png"],
+      ["Very Happy", "sent_very_happy.png"],
+      ["Sick", "sent_sick.png"],
+      ["Bored", "sent_bored.png"],
+      ["Frustrated", "sent_frustrated.png"]
+    ],
+    [
+      ["Chilled", "fig_chilled.png"],
+      ["Sad", "fig_sad.png"],
+      ["Bored", "fig_bored.png"],
+      ["Annoyed", "fig_annoyed.png"],
+      ["Angry", "fig_angry.png"],
+      ["Embarrassed", "fig_embarrassed.png"],
+      ["Surprised", "fig_surprised.png"],
+      ["Very Happy", "fig_very_happy.png"]
     ],
     [
       ["Agree", "thumb_up.png"],
@@ -21,5 +30,5 @@
       ["Storm", "day_storm.png"]
     ]
   ],
-  "initial": [0, 0, 0]
+  "initial": [0, 0, 0, 0]
 }

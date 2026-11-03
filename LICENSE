@@ -28,7 +28,8 @@ This licence does not cover:
   and docs/images/sim-tour.png. They are Google Material icons
   (https://fonts.google.com/icons), exported as images by MoodBadger
   (https://github.com/simonpainter/MoodBadger) and converted to four greys
-  here. They are licensed under the Apache License 2.0; see
+  here; the sent_* faces are drawn here from the Material Symbols font.
+  They are licensed under the Apache License 2.0; see
   badger/mood_badger/assets/LICENSE.
 - sim/wasm/, which is Pimoroni's badgeware-wasm build (MIT, Copyright (c)
   Pimoroni Ltd).

@@ -16,7 +16,7 @@ LABEL_CENTRE_X = 122
 # Labels sit level with the set arrows and must fit between them.
 LABEL_MAX_WIDTH = 140
 # Largest first; a label uses the first font it fits in, or the last one.
-LABEL_FONTS = (font.ziplock, font.smart, font.winds)
+LABEL_FONTS = (font.ignore, font.ziplock, font.smart, font.winds)
 
 try:
     with open("config.json") as f:
