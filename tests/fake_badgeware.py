@@ -77,6 +77,10 @@ class _ImageModule:
     def load(path):
         if not os.path.exists(path):
             raise OSError(path)
+        with open(path, "rb") as f:
+            if f.read(8) != b"\x89PNG\r\n\x1a\n":
+                # picovector's decoder rejects it; the exact error type is undocumented
+                raise RuntimeError("cannot decode " + path)
         return _Image(path)
 
 
@@ -138,7 +142,7 @@ class _Badge:
         self._r.mode = value
 
 
-def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=()):
+def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=(), files_corrupt=()):
     result = Result()
     badge = _Badge(result, update_polls)
 
@@ -199,6 +203,8 @@ def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=
             (app / "config.json").write_text(config_text)
         for name in files_missing:
             (app / name).unlink()
+        for name in files_corrupt:
+            (app / name).write_bytes(b"\xff\xd8\xff\xe0 a JPEG renamed to .png")
         os.chdir(app)
         try:
             runpy.run_path("__init__.py", init_globals=fakes)

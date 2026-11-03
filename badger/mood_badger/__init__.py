@@ -40,9 +40,14 @@ def draw(mood_set, mood_index):
     screen.pen = color.white
     screen.clear()
 
+    # A missing or undecodable image still shows the label. Crashing here
+    # would repeat on every launch, because this mood is already saved.
     path = "assets/" + image_name
     if file_exists(path):
-        screen.blit(image.load(path), vec2(*IMAGE_POS))
+        try:
+            screen.blit(image.load(path), vec2(*IMAGE_POS))
+        except Exception:  # noqa: BLE001
+            pass
 
     screen.pen = color.black
     screen.font = LARGE_FONT

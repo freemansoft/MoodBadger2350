@@ -563,8 +563,8 @@ Expected: no crash; the final screen matches the saved state; B reaches all thre
 - [ ] **Step 6: Check persistence.** Select a mood, press HOME, reopen the app, then press RESET and reopen.
 Expected: the selected mood is restored both times.
 
-- [ ] **Step 7: Check bad input.** Temporarily rename one PNG and separately break `config.json` on the badge.
-Expected: the label shows without its image; a readable error names `config.json`. Restore both files.
+- [ ] **Step 7: Check bad input.** Temporarily rename one PNG, separately replace one with a JPEG renamed to `.png`, and separately break `config.json` on the badge.
+Expected: the label shows without its image in both image cases, and the app keeps working; a readable error names `config.json`. Restore the files.
 
 - [ ] **Step 8: Try the store's Add local app.** Open `https://badger.github.io/apps/` and try **Open BADGER disk** with the e-ink badge in disk mode.
 Expected: either result is acceptable. Record in the README's app store section whether it worked.

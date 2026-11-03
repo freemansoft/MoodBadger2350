@@ -80,6 +80,14 @@ def test_missing_image_still_draws_label():
     assert ("Chilled", "ignore") in r.texts
 
 
+def test_undecodable_image_still_draws_label_and_keeps_working():
+    # The saved mood is redrawn on every launch, so a crash here would loop forever.
+    r = run_app([set(), {BUTTON_DOWN}], saved={"set": 0, "mood": 0}, files_corrupt=("assets/happy.png",))
+    assert r.fatal is None
+    assert ("Chilled", "ignore") in r.texts
+    assert r.blits == ["assets/sad.png"]
+
+
 def test_bad_config_reports_error():
     assert "config.json" in run_app([set()], config_text="not json").fatal
 
