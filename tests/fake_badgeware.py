@@ -105,17 +105,24 @@ class _Screen:
 
 
 class _Badge:
-    def __init__(self, result):
+    def __init__(self, result, update_polls):
         self._r = result
         self.running = False
         self.first_update = True
         self.current = set()
+        # Button sets seen by the poll at the end of each badge.update(). A press
+        # caught there survives into the next update() unless a wait polls again.
+        self._update_polls = list(update_polls)
+        self.carried = False
 
     def poll(self):
         if not self.running:
             self._r.early_calls.append("poll")
 
     def pressed(self, button=None):
+        # Like the firmware: no argument returns every pressed button.
+        if button is None:
+            return tuple(self.current)
         return button in self.current
 
     def update(self):
@@ -123,14 +130,17 @@ class _Badge:
             self._r.early_calls.append("update")
         self._r.events.append("display")
         self.first_update = False
+        if self._update_polls:
+            self.current = set(self._update_polls.pop(0))
+            self.carried = bool(self.current)
 
     def mode(self, value=None):
         self._r.mode = value
 
 
-def run_app(ticks, saved=None, config_text=None, files_missing=()):
+def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=()):
     result = Result()
-    badge = _Badge(result)
+    badge = _Badge(result, update_polls)
 
     class State:
         @staticmethod
@@ -147,12 +157,20 @@ def run_app(ticks, saved=None, config_text=None, files_missing=()):
             result.saved = dict(data)
 
     def run(update):
+        # One update() per tick, plus an extra one whenever a press caught by
+        # badge.update() is still pending because the app skipped its wait.
         badge.running = True
-        for pressed in ticks:
-            badge.current = set(pressed)
+        pending = list(ticks)
+        while pending or badge.carried:
+            if badge.carried:
+                badge.carried = False
+            else:
+                badge.current = set(pending.pop(0))
             update()
 
     def wait_for_button_or_alarm(timeout=30_000):
+        # Its first poll replaces whatever badge.update() last saw.
+        badge.carried = False
         result.events.append("wait")
         result.waits.append(timeout)
 

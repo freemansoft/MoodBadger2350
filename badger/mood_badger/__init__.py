@@ -73,6 +73,10 @@ def update():
     if changed or badge.first_update:
         draw(config["moods"][set_index], mood_index)
         badge.update()
+        # badge.update() polls the buttons as it finishes. Waiting would poll
+        # again and lose a press made during the refresh, so handle it now.
+        if badge.pressed():
+            return
 
     # Sleeps after SLEEP_AFTER_MS on battery; any front button wakes the badge.
     wait_for_button_or_alarm(timeout=SLEEP_AFTER_MS)

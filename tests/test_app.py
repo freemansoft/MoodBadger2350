@@ -54,6 +54,14 @@ def test_press_during_refresh_is_not_dropped():
     assert r.saved == {"set": 0, "mood": 2}
 
 
+def test_press_caught_by_display_update_is_not_lost():
+    # A press held as the refresh finishes is seen by badge.update()'s own poll;
+    # waiting would poll again and drop it.
+    r = run_app([set()], saved={"set": 0, "mood": 0}, update_polls=[{BUTTON_DOWN}])
+    assert r.saved == {"set": 0, "mood": 1}
+    assert r.blits == ["assets/happy.png", "assets/sad.png"]
+
+
 def test_stale_state_recovers():
     assert run_app([set()], saved={"set": 9, "mood": 9}).blits == ["assets/happy.png"]
 
