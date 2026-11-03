@@ -126,7 +126,7 @@ To contribute Mood Badger:
 3. Check it passes the repository's `ruff` lint (see [Development](#development)).
 4. Open a pull request.
 
-The MoodBadger art has no licence yet, and `badgeware-contrib` is MIT-licensed, so the art needs the author's permission or replacing before a pull request.
+The mood images are Google Material icons under the Apache License 2.0, and the app folder already carries that licence in `assets/LICENSE`, so they can be contributed as they are.
 
 ## The badger.github.io app store
 
@@ -203,4 +203,4 @@ The simulator shows layout, art, labels and navigation. It does not model sleep,
 
 The code in this repository is released under the [MIT Licence](LICENSE).
 
-The licence does not cover the mood images (`badger/mood_badger/assets/`, `icon.png` and the simulator screenshot). They are derived from Simon Painter's MoodBadger art, which has no licence and is not cleared for redistribution. `sim/wasm/` is Pimoroni's MIT-licensed `badgeware-wasm` build, and the `vendor/` submodules keep their own licences.
+The mood images (`badger/mood_badger/assets/`, `icon.png` and the simulator screenshot) are [Google Material icons](https://fonts.google.com/icons), which MoodBadger exported as images and this repository converts to four greys. They are licensed under the Apache License 2.0, included as `badger/mood_badger/assets/LICENSE`. `sim/wasm/` is Pimoroni's MIT-licensed `badgeware-wasm` build, and the `vendor/` submodules keep their own licences.

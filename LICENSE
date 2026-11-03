@@ -25,9 +25,11 @@ SOFTWARE.
 This licence does not cover:
 
 - The mood images in badger/mood_badger/assets/, badger/mood_badger/icon.png
-  and docs/images/sim-tour.png. They are derived from Simon Painter's
-  MoodBadger artwork (https://github.com/simonpainter/MoodBadger), which has
-  no licence, and remain his.
+  and docs/images/sim-tour.png. They are Google Material icons
+  (https://fonts.google.com/icons), exported as images by MoodBadger
+  (https://github.com/simonpainter/MoodBadger) and converted to four greys
+  here. They are licensed under the Apache License 2.0; see
+  badger/mood_badger/assets/LICENSE.
 - sim/wasm/, which is Pimoroni's badgeware-wasm build (MIT, Copyright (c)
   Pimoroni Ltd).
 - The submodules in vendor/, which carry their own licences.
