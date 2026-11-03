@@ -27,3 +27,7 @@ Edit `config.json` in this folder. `moods` is a list of mood sets; each mood is 
 ```
 
 Images look best at 122×136 pixels in black, white and two greys.
+
+## Credits
+
+The mood images are [Google Material icons](https://fonts.google.com/icons), chosen for [MoodBadger](https://github.com/simonpainter/MoodBadger), and licensed under the Apache License 2.0 (see `assets/LICENSE`). The code is MIT-licensed.

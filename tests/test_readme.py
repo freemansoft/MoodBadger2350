@@ -34,3 +34,13 @@ def test_readme_gives_a_mac_copy_command_that_skips_junk_files():
 def test_app_readme_states_controls_and_minimum_firmware():
     text = (ROOT / "badger" / "mood_badger" / "README.md").read_text()
     assert "v3.1.1" in text and "config.json" in text
+
+
+def test_mood_images_carry_their_apache_licence():
+    # The images are Google Material icons; Apache 2.0 needs its text shipped with them.
+    licence = (ROOT / "badger" / "mood_badger" / "assets" / "LICENSE").read_text()
+    assert "Apache License" in licence and "Version 2.0, January 2004" in licence
+    for path in ("README.md", "LICENSE", "badger/mood_badger/README.md"):
+        text = (ROOT / path).read_text()
+        assert "Material" in text and "Apache License 2.0" in text, path
+        assert "not cleared for redistribution" not in text and "remain his" not in text, path
