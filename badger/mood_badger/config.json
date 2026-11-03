@@ -1,0 +1,25 @@
+{
+  "moods": [
+    [
+      ["Chilled", "happy.png"],
+      ["Sad", "sad.png"],
+      ["Bored", "bored.png"],
+      ["Annoyed", "annoyed.png"],
+      ["Angry", "angry.png"],
+      ["Embarrassed", "embarassed.png"],
+      ["Surprised", "surprised.png"],
+      ["Very Happy", "very_happy.png"]
+    ],
+    [
+      ["Agree", "thumb_up.png"],
+      ["Disagree", "thumb_down.png"]
+    ],
+    [
+      ["Clear", "day_clear.png"],
+      ["Part Cloudy", "day_part_cloudy.png"],
+      ["Rainy", "day_rainy.png"],
+      ["Storm", "day_storm.png"]
+    ]
+  ],
+  "initial": [0, 0, 0]
+}
