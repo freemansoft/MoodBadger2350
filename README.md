@@ -16,6 +16,19 @@ You need a Badger 2350 running firmware **v3.1.1** or later. Firmware and update
 4. Safely eject the drive, then press **RESET** once.
 5. Choose **Mood Badger** in the menu.
 
+Copying the same folder again later updates the app; your saved mood is kept.
+
+### Copying from a Mac
+
+Finder works, but it also copies the hidden `._` files macOS adds on this kind of drive, and any `__pycache__` folder the tests leave behind. From the repository root, this copies only the app's own files. Use the drive's name as it appears under `/Volumes`:
+
+```sh
+rsync -rv --exclude __pycache__ --exclude '.*' badger/mood_badger/ /Volumes/BADGER/apps/mood_badger/
+diskutil eject /Volumes/BADGER
+```
+
+Keep the trailing `/` on `badger/mood_badger/`, so rsync copies the folder's contents into `apps/mood_badger` rather than nesting a second folder inside it. If no drive appears in disk mode, try another cable: some USB-C cables only carry power.
+
 ## Controls
 
 | Button | Action |

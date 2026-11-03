@@ -25,6 +25,12 @@ def test_readme_contains_reference(required):
     assert required in (ROOT / "README.md").read_text()
 
 
+def test_readme_gives_a_mac_copy_command_that_skips_junk_files():
+    text = (ROOT / "README.md").read_text()
+    assert "rsync -rv --exclude __pycache__ --exclude '.*' badger/mood_badger/ /Volumes/" in text
+    assert "diskutil eject" in text
+
+
 def test_app_readme_states_controls_and_minimum_firmware():
     text = (ROOT / "badger" / "mood_badger" / "README.md").read_text()
     assert "v3.1.1" in text and "config.json" in text
