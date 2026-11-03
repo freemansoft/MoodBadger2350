@@ -32,7 +32,7 @@
   <div id="status">loading MicroPython...</div>
   <div class="hint">
     <kbd>&uarr;</kbd> previous mood &middot; <kbd>&darr;</kbd> next mood &middot;
-    <kbd>B</kbd> next set &middot; <kbd>A</kbd> <kbd>C</kbd> unused &middot; <kbd>H</kbd> home
+    <kbd>A</kbd> previous set &middot; <kbd>C</kbd> next set &middot; <kbd>H</kbd> home
   </div>
   <div class="hint">Sleep, wake, refresh time and e-paper contrast are not simulated.</div>
 
@@ -84,16 +84,16 @@ const mp = await loadMicroPython({
 });
 
 status.textContent = "loading files...";
-const manifest = await (await fetch("fs/manifest.json")).json();
+const manifest = await (await fetch("fs/manifest.json", { cache: "no-store" })).json();
 for (const [devicePath, local] of manifest) {
-  const bytes = new Uint8Array(await (await fetch("fs/" + local)).arrayBuffer());
+  const bytes = new Uint8Array(await (await fetch("fs/" + local, { cache: "no-store" })).arrayBuffer());
   mp.FS.mkdirTree(devicePath.slice(0, devicePath.lastIndexOf("/")));
   mp.FS.writeFile(devicePath, bytes);
 }
 
 status.textContent = "running";
 try {
-  await mp.runPythonAsync(await (await fetch("boot.py")).text());
+  await mp.runPythonAsync(await (await fetch("boot.py", { cache: "no-store" })).text());
   status.textContent = "stopped";
 } catch (e) {
   status.textContent = "stopped: " + e;

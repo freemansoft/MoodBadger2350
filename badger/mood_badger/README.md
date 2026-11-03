@@ -7,7 +7,7 @@ Requires Badger 2350 firmware **v3.1.1** or later.
 ## Controls
 
 - **UP** / **DOWN**: previous / next mood
-- **B**: next mood set
+- **A** / **C**: previous / next mood set (the ◀ ▶ arrows in the bottom corners)
 - **HOME**: back to the menu
 
 Hold a button until the screen starts to change; a quick tap during a refresh can be missed. On battery the badge sleeps after 5 seconds, and any front button wakes it and moves straight to the next mood.

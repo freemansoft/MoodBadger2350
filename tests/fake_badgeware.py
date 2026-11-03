@@ -18,7 +18,8 @@ MEDIUM_UPDATE = 2 << 4
 NON_BLOCKING = 1 << 9
 
 # Pixels per character, so tests can push labels past the width limit.
-CHAR_WIDTH = {"ignore": 12, "smart": 7}
+CHAR_WIDTH = {"ignore": 12, "smart": 7, "winds": 5}
+TEXT_HEIGHT = 20
 
 
 class _Stop(Exception):
@@ -30,6 +31,8 @@ class Result:
         self.events = []
         self.blits = []
         self.texts = []
+        self.text_y = []
+        self.arrows = []
         self.waits = []
         self.saved = None
         self.mode = None
@@ -53,8 +56,9 @@ class _Colors:
 
 
 class _Shape:
-    def __init__(self, filled=True):
+    def __init__(self, filled=True, points=None):
         self.filled = filled
+        self.points = points
 
     def stroke(self, width):
         return _Shape(filled=False)
@@ -64,6 +68,10 @@ class _Shapes:
     @staticmethod
     def rectangle(x, y, w, h):
         return _Shape()
+
+    @staticmethod
+    def custom(points):
+        return _Shape(points=[tuple(p) for p in points])
 
 
 class _Image:
@@ -100,12 +108,15 @@ class _Screen:
     def text(self, text, x, y):
         self._r.events.append("text")
         self._r.texts.append((text, self.font.name))
+        self._r.text_y.append(y)
 
     def measure_text(self, text):
-        return len(text) * CHAR_WIDTH.get(self.font.name, 10), 20
+        return len(text) * CHAR_WIDTH.get(self.font.name, 10), TEXT_HEIGHT
 
     def shape(self, s):
         self._r.events.append("shape")
+        if s.points is not None:
+            self._r.arrows.append(s.points)
 
 
 class _Badge:

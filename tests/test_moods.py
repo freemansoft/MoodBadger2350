@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from moods import MAX_MOODS, apply_input, parse_config, pip_positions, restore
+from moods import MAX_MOODS, SCREEN_HEIGHT, SCREEN_WIDTH, apply_input, parse_config, pip_positions, restore, set_arrows
 
 CFG = {
     "moods": [
@@ -14,34 +14,62 @@ CFG = {
 
 
 def test_down_advances_and_wraps():
-    assert apply_input(CFG, 0, 0, False, True, False) == (0, 1)
-    assert apply_input(CFG, 0, 2, False, True, False) == (0, 0)
+    assert apply_input(CFG, 0, 0, False, True, False, False) == (0, 1)
+    assert apply_input(CFG, 0, 2, False, True, False, False) == (0, 0)
 
 
 def test_up_goes_back_and_wraps():
-    assert apply_input(CFG, 0, 0, True, False, False) == (0, 2)
+    assert apply_input(CFG, 0, 0, True, False, False, False) == (0, 2)
 
 
 def test_no_input_keeps_position():
-    assert apply_input(CFG, 1, 1, False, False, False) == (1, 1)
+    assert apply_input(CFG, 1, 1, False, False, False, False) == (1, 1)
 
 
 def test_up_and_down_together_cancel():
-    assert apply_input(CFG, 0, 1, True, True, False) == (0, 1)
+    assert apply_input(CFG, 0, 1, True, True, False, False) == (0, 1)
 
 
-def test_cycle_moves_to_next_set_at_its_initial_mood_and_wraps():
-    assert apply_input(CFG, 0, 2, False, False, True) == (1, 1)
-    assert apply_input(CFG, 1, 0, False, False, True) == (0, 0)
+def test_next_set_moves_to_next_set_at_its_initial_mood_and_wraps():
+    assert apply_input(CFG, 0, 2, False, False, False, True) == (1, 1)
+    assert apply_input(CFG, 1, 0, False, False, False, True) == (0, 0)
 
 
-def test_cycle_beats_up_and_down():
-    assert apply_input(CFG, 0, 0, True, True, True) == (1, 1)
+def test_prev_set_moves_to_previous_set_at_its_initial_mood_and_wraps():
+    assert apply_input(CFG, 1, 0, False, False, True, False) == (0, 0)
+    assert apply_input(CFG, 0, 2, False, False, True, False) == (1, 1)
 
 
-def test_single_set_cycle_returns_to_initial():
+def test_set_change_beats_up_and_down():
+    assert apply_input(CFG, 0, 0, True, True, False, True) == (1, 1)
+
+
+def test_prev_and_next_set_together_cancel():
+    assert apply_input(CFG, 0, 2, False, False, True, True) == (0, 2)
+
+
+def test_single_set_change_returns_to_initial():
     single = {"moods": [CFG["moods"][0]], "initial": [2]}
-    assert apply_input(single, 0, 0, False, False, True) == (0, 2)
+    assert apply_input(single, 0, 0, False, False, False, True) == (0, 2)
+    assert apply_input(single, 0, 0, False, False, True, False) == (0, 2)
+
+
+def test_set_arrows_hidden_with_one_set():
+    assert set_arrows(1) == []
+
+
+def test_set_arrows_point_left_above_a_and_right_above_c():
+    left, right = set_arrows(3)
+    assert len(left) == len(right) == 3
+    # the tip is the point furthest out: left for A, right for C
+    assert min(left) == (38, 167)
+    assert max(right) == (215, 167)
+
+
+def test_set_arrows_stay_on_screen_and_clear_of_the_pips():
+    for x, y in [p for arrow in set_arrows(2) for p in arrow]:
+        assert 0 <= x < 250 and 0 <= y < SCREEN_HEIGHT
+    assert SCREEN_WIDTH == 264
 
 
 def test_restore_uses_saved_position():

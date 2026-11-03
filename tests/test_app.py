@@ -1,15 +1,17 @@
 import pytest
 
 from fake_badgeware import (
-    BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_DOWN, BUTTON_HOME, NON_BLOCKING, run_app,
+    BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_DOWN, BUTTON_HOME, NON_BLOCKING, TEXT_HEIGHT, run_app,
 )
+
+import moods
 
 
 def test_first_tick_draws_saved_mood_once():
     r = run_app([set()], saved={"set": 0, "mood": 2})
     assert r.events.count("display") == 1
     assert r.blits == ["assets/bored.png"]
-    assert ("Bored", "ignore") in r.texts
+    assert ("Bored", "smart") in r.texts
 
 
 def test_framebuffer_cleared_before_drawing():
@@ -35,13 +37,19 @@ def test_state_saved_before_display_refresh():
     assert r.events.index("save") < second_display
 
 
-def test_b_cycles_set():
-    r = run_app([set(), {BUTTON_B}], saved={"set": 0, "mood": 3})
+def test_c_moves_to_next_set():
+    r = run_app([set(), {BUTTON_C}], saved={"set": 0, "mood": 3})
     assert r.saved == {"set": 1, "mood": 0}
     assert r.blits[-1] == "assets/thumb_up.png"
 
 
-@pytest.mark.parametrize("button", [BUTTON_A, BUTTON_C, BUTTON_HOME])
+def test_a_moves_to_previous_set_wrapping_to_the_last():
+    r = run_app([set(), {BUTTON_A}], saved={"set": 0, "mood": 3})
+    assert r.saved == {"set": 2, "mood": 0}
+    assert r.blits[-1] == "assets/day_clear.png"
+
+
+@pytest.mark.parametrize("button", [BUTTON_B, BUTTON_HOME])
 def test_unmapped_buttons_do_not_refresh(button):
     r = run_app([set(), {button}])
     assert r.events.count("display") == 1
@@ -77,14 +85,14 @@ def test_each_update_waits_with_sleep_timeout():
 def test_missing_image_still_draws_label():
     r = run_app([set()], saved={"set": 0, "mood": 0}, files_missing=("assets/happy.png",))
     assert r.blits == []
-    assert ("Chilled", "ignore") in r.texts
+    assert ("Chilled", "smart") in r.texts
 
 
 def test_undecodable_image_still_draws_label_and_keeps_working():
     # The saved mood is redrawn on every launch, so a crash here would loop forever.
     r = run_app([set(), {BUTTON_DOWN}], saved={"set": 0, "mood": 0}, files_corrupt=("assets/happy.png",))
     assert r.fatal is None
-    assert ("Chilled", "ignore") in r.texts
+    assert ("Chilled", "smart") in r.texts
     assert r.blits == ["assets/sad.png"]
 
 
@@ -100,6 +108,28 @@ def test_missing_config_reports_error():
     assert "config.json" in run_app([set()], files_missing=("config.json",)).fatal
 
 
-def test_long_label_uses_smaller_font():
-    r = run_app([set()], config_text='{"moods": [[["' + "W" * 25 + '", "happy.png"]]]}')
+def test_label_uses_smart_font():
+    assert run_app([set()]).texts == [("Chilled", "smart")]
+
+
+def test_label_too_wide_to_sit_between_the_arrows_uses_winds():
+    # 21 characters of Smart (7 px each in the fake) is 147 px, wider than the gap
+    r = run_app([set()], config_text='{"moods": [[["' + "W" * 21 + '", "happy.png"]], [["x", "sad.png"]]]}')
+    assert r.texts[0][1] == "winds"
+
+
+def test_label_that_fits_between_the_arrows_keeps_smart():
+    r = run_app([set()], config_text='{"moods": [[["' + "W" * 20 + '", "happy.png"]], [["x", "sad.png"]]]}')
     assert r.texts[0][1] == "smart"
+
+
+def test_label_is_vertically_centred_on_the_arrows():
+    assert run_app([set()]).text_y == [moods.ARROW_MID_Y - TEXT_HEIGHT / 2]
+
+
+def test_set_arrows_drawn_above_a_and_c_with_several_sets():
+    assert run_app([set()]).arrows == moods.set_arrows(3)
+
+
+def test_no_set_arrows_with_a_single_set():
+    assert run_app([set()], config_text='{"moods": [[["Chilled", "happy.png"]]]}').arrows == []

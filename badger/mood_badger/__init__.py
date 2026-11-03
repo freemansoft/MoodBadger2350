@@ -1,6 +1,6 @@
 # Mood Badger: show how you feel on a Badger 2350.
 #
-# UP and DOWN step through the moods, B cycles between mood sets.
+# UP and DOWN step through the moods; A and C go to the previous and next set.
 # The menu's launch() has already made this folder the working directory.
 #
 # Badger restarts this file from the top every time it wakes, and the waking
@@ -13,10 +13,10 @@ SLEEP_AFTER_MS = 5000
 
 IMAGE_POS = (61, 2)
 LABEL_CENTRE_X = 122
-LABEL_TOP = 142
-LABEL_MAX_WIDTH = 236
-LARGE_FONT = font.ignore
-SMALL_FONT = font.smart
+# Labels sit level with the set arrows and must fit between them.
+LABEL_MAX_WIDTH = 140
+LABEL_FONT = font.smart
+NARROW_FONT = font.winds
 
 try:
     with open("config.json") as f:
@@ -50,12 +50,16 @@ def draw(mood_set, mood_index):
             pass
 
     screen.pen = color.black
-    screen.font = LARGE_FONT
-    width, _ = screen.measure_text(label)
+    screen.font = LABEL_FONT
+    width, height = screen.measure_text(label)
     if width > LABEL_MAX_WIDTH:
-        screen.font = SMALL_FONT
-        width, _ = screen.measure_text(label)
-    screen.text(label, LABEL_CENTRE_X - width / 2, LABEL_TOP)
+        screen.font = NARROW_FONT
+        width, height = screen.measure_text(label)
+    screen.text(label, LABEL_CENTRE_X - width / 2, moods.ARROW_MID_Y - height / 2)
+
+    # A and C change set; the arrows above them say so. Hidden with only one set.
+    for arrow in moods.set_arrows(len(config["moods"])):
+        screen.shape(shape.custom([vec2(x, y) for x, y in arrow]))
 
     # one pip per mood in this set, filled for the current one
     for i, (x, y) in enumerate(moods.pip_positions(len(mood_set))):
@@ -66,7 +70,8 @@ def draw(mood_set, mood_index):
 def update():
     set_index, mood_index = moods.apply_input(
         config, state["set"], state["mood"],
-        badge.pressed(BUTTON_UP), badge.pressed(BUTTON_DOWN), badge.pressed(BUTTON_B),
+        badge.pressed(BUTTON_UP), badge.pressed(BUTTON_DOWN),
+        badge.pressed(BUTTON_A), badge.pressed(BUTTON_C),
     )
     changed = (set_index, mood_index) != (state["set"], state["mood"])
 

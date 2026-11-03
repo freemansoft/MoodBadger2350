@@ -9,7 +9,15 @@ MAX_MOODS = 16
 PIP_X = 250
 PIP_SIZE = 8
 PIP_SPACING = 10
+SCREEN_WIDTH = 264
 SCREEN_HEIGHT = 176
+
+# Set arrows sit along the bottom edge, above buttons A (left) and C (right).
+# The x positions follow the stock Hydrate app's A and C hints.
+ARROW_A_X = 43
+ARROW_C_X = 210
+ARROW_MID_Y = 167
+ARROW_HALF = 5
 
 
 def _is_text(value):
@@ -65,15 +73,30 @@ def restore(config, saved):
     return set_index, mood_index
 
 
-def apply_input(config, set_index, mood_index, up, down, cycle):
-    """Apply one frame of button input. Cycle wins; up and down together cancel."""
-    if cycle:
-        next_set = (set_index + 1) % len(config["moods"])
-        return next_set, config["initial"][next_set]
+def apply_input(config, set_index, mood_index, up, down, prev_set, next_set):
+    """Apply one frame of button input.
+
+    A set change wins over up and down and opens the new set at its initial mood.
+    Pressing both of a pair (up and down, or prev and next set) cancels it.
+    """
+    set_step = (1 if next_set else 0) - (1 if prev_set else 0)
+    if set_step:
+        new_set = (set_index + set_step) % len(config["moods"])
+        return new_set, config["initial"][new_set]
 
     step = (1 if down else 0) - (1 if up else 0)
     count = len(config["moods"][set_index])
     return set_index, (mood_index + step) % count
+
+
+def set_arrows(set_count):
+    """Triangles hinting at the set buttons, as lists of (x, y); none for a single set."""
+    if set_count < 2:
+        return []
+    top, bottom = ARROW_MID_Y - ARROW_HALF, ARROW_MID_Y + ARROW_HALF
+    left = [(ARROW_A_X - ARROW_HALF, ARROW_MID_Y), (ARROW_A_X + ARROW_HALF, top), (ARROW_A_X + ARROW_HALF, bottom)]
+    right = [(ARROW_C_X + ARROW_HALF, ARROW_MID_Y), (ARROW_C_X - ARROW_HALF, top), (ARROW_C_X - ARROW_HALF, bottom)]
+    return [left, right]
 
 
 def pip_positions(count):
