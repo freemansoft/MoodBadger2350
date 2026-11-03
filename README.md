@@ -158,4 +158,6 @@ The simulator shows layout, art, labels and navigation. It does not model sleep,
 
 ## Licence
 
-The code in this repository has no licence yet. The MoodBadger images are Simon Painter's and are not licensed for redistribution.
+The code in this repository is released under the [MIT Licence](LICENSE).
+
+The licence does not cover the mood images (`badger/mood_badger/assets/`, `icon.png` and the simulator screenshot). They are derived from Simon Painter's MoodBadger art, which has no licence and is not cleared for redistribution. `sim/wasm/` is Pimoroni's MIT-licensed `badgeware-wasm` build, and the `vendor/` submodules keep their own licences.
