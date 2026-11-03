@@ -11,7 +11,7 @@ def test_first_tick_draws_saved_mood_once():
     r = run_app([set()], saved={"set": 0, "mood": 2})
     assert r.events.count("display") == 1
     assert r.blits == ["assets/bored.png"]
-    assert ("Bored", "smart") in r.texts
+    assert ("Bored", "ziplock") in r.texts
 
 
 def test_framebuffer_cleared_before_drawing():
@@ -85,14 +85,14 @@ def test_each_update_waits_with_sleep_timeout():
 def test_missing_image_still_draws_label():
     r = run_app([set()], saved={"set": 0, "mood": 0}, files_missing=("assets/happy.png",))
     assert r.blits == []
-    assert ("Chilled", "smart") in r.texts
+    assert ("Chilled", "ziplock") in r.texts
 
 
 def test_undecodable_image_still_draws_label_and_keeps_working():
     # The saved mood is redrawn on every launch, so a crash here would loop forever.
     r = run_app([set(), {BUTTON_DOWN}], saved={"set": 0, "mood": 0}, files_corrupt=("assets/happy.png",))
     assert r.fatal is None
-    assert ("Chilled", "smart") in r.texts
+    assert ("Chilled", "ziplock") in r.texts
     assert r.blits == ["assets/sad.png"]
 
 
@@ -108,19 +108,29 @@ def test_missing_config_reports_error():
     assert "config.json" in run_app([set()], files_missing=("config.json",)).fatal
 
 
-def test_label_uses_smart_font():
-    assert run_app([set()]).texts == [("Chilled", "smart")]
+def label_font(label):
+    # two sets, so the arrows are shown and the label must fit between them
+    r = run_app([set()], config_text='{"moods": [[["' + label + '", "happy.png"]], [["x", "sad.png"]]]}')
+    return r.texts[0][1]
 
 
-def test_label_too_wide_to_sit_between_the_arrows_uses_winds():
-    # 21 characters of Smart (7 px each in the fake) is 147 px, wider than the gap
-    r = run_app([set()], config_text='{"moods": [[["' + "W" * 21 + '", "happy.png"]], [["x", "sad.png"]]]}')
-    assert r.texts[0][1] == "winds"
+def test_label_uses_ziplock_font():
+    assert run_app([set()]).texts == [("Chilled", "ziplock")]
 
 
-def test_label_that_fits_between_the_arrows_keeps_smart():
-    r = run_app([set()], config_text='{"moods": [[["' + "W" * 20 + '", "happy.png"]], [["x", "sad.png"]]]}')
-    assert r.texts[0][1] == "smart"
+def test_label_that_fits_between_the_arrows_keeps_ziplock():
+    # 15 characters of Ziplock (9 px each in the fake) is 135 px, inside the 140 px gap
+    assert label_font("W" * 15) == "ziplock"
+
+
+def test_label_too_wide_for_ziplock_steps_down_to_smart():
+    # 16 characters: 144 px of Ziplock is too wide, 112 px of Smart fits
+    assert label_font("W" * 16) == "smart"
+
+
+def test_label_too_wide_for_smart_steps_down_to_winds():
+    # 21 characters: 147 px of Smart is too wide
+    assert label_font("W" * 21) == "winds"
 
 
 def test_label_is_vertically_centred_on_the_arrows():
