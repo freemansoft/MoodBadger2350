@@ -2,7 +2,7 @@
 
 Mood Badger is a visual communication aid for neurodivergent children. It turns a Pimoroni [Badger 2350](https://github.com/pimoroni/badger2350) e-ink badge into a mood display: the child presses a button to show how they feel, with a picture and a word, so they can share their emotional state without having to say it. The e-ink screen keeps showing the mood even while the badge is asleep.
 
-It is a port of [MoodBadger](https://github.com/simonpainter/MoodBadger) by Simon Painter, written for the original Badger 2040.
+Mood Badger 2350 is a port of Simon Painter's [MoodBadger](https://github.com/simonpainter/MoodBadger) for the original Badger 2040, a project I was fortunate to contribute to.
 
 ![Mood Badger showing every mood and set in the simulator](docs/images/sim-tour.png)
 
