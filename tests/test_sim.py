@@ -41,8 +41,9 @@ def test_app_boots_and_down_moves_to_next_mood(tmp_path):
     assert set(first) <= {0, 85, 170, 255}
     assert any(v == 0 for v in first[: WIDTH * 140])
     assert first != second
-    assert pip_filled(second, 1)
-    assert not pip_filled(second, 0)
+    # the first set (Material faces) has seven moods
+    assert pip_filled(second, 1, count=7)
+    assert not pip_filled(second, 0, count=7)
 
 
 def test_set_arrows_drawn_and_c_moves_to_next_set(tmp_path):
@@ -53,9 +54,9 @@ def test_set_arrows_drawn_and_c_moves_to_next_set(tmp_path):
     # filled arrows above A (left) and C (right), drawn by the real firmware
     for frame in (first, second):
         assert black(frame, 44, 157) and black(frame, 209, 157)
-    # the next set (thumbs) has two moods and opens on its first
-    assert pip_filled(second, 0, count=2)
-    assert not pip_filled(second, 1, count=2)
+    # the next set (Lego faces) has eight moods and opens on its first
+    assert pip_filled(second, 0, count=8)
+    assert not pip_filled(second, 1, count=8)
 
 
 def test_browser_page_never_uses_cached_app_files():
