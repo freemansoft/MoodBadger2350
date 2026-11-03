@@ -29,6 +29,30 @@ diskutil eject /Volumes/BADGER
 
 Keep the trailing `/` on `badger/mood_badger/`, so rsync copies the folder's contents into `apps/mood_badger` rather than nesting a second folder inside it. If no drive appears in disk mode, try another cable: some USB-C cables only carry power.
 
+### Make it the only app
+
+To make the badge a dedicated mood badge that never shows the menu, replace `main.py` at the root of the drive with [`kiosk/main.py`](kiosk/main.py). Install the app as above first, then, with the badge still in disk mode:
+
+```sh
+cp -X kiosk/main.py /Volumes/BADGER/main.py
+diskutil eject /Volumes/BADGER
+```
+
+What changes:
+
+- Power-on, **RESET** and waking from sleep all start Mood Badger.
+- **HOME** restarts Mood Badger instead of opening the menu.
+- The other apps stay on the drive but cannot be reached from the badge. You can delete their folders from `apps/`; keep `apps/menu` if you might want the menu back.
+- Double-tap **RESET** still enters disk mode. The firmware checks for it before running `main.py`, so this cannot lock you out.
+
+To undo it, put the badge in disk mode and copy the stock file back:
+
+```sh
+cp -X vendor/badger2350/firmware/main.py /Volumes/BADGER/main.py
+```
+
+That file is from firmware v3.1.1; if your badge runs a newer firmware, take `main.py` from that release instead. Updating the firmware may also replace `main.py`. If the menu comes back after an update, copy `kiosk/main.py` over again.
+
 ## Controls
 
 | Button | Action |
@@ -38,8 +62,8 @@ Keep the trailing `/` on `badger/mood_badger/`, so rsync copies the folder's con
 | **A** | Previous mood set, starting at that set's first mood |
 | **C** | Next mood set, starting at that set's first mood |
 | **B** | Not used |
-| **HOME** (back) | Return to the menu |
-| **RESET** (back) | Restart the badge into the menu |
+| **HOME** (back) | Return to the menu (restart Mood Badger when it is [the only app](#make-it-the-only-app)) |
+| **RESET** (back) | Restart the badge into the menu (into Mood Badger when it is the only app) |
 
 All five front buttons (A, B, C, UP and DOWN) are available to apps. HOME and RESET belong to the firmware.
 
