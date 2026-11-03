@@ -22,12 +22,15 @@ You need a Badger 2350 running firmware **v3.1.1** or later. Firmware and update
 | --- | --- |
 | **UP** | Previous mood |
 | **DOWN** | Next mood |
-| **B** | Next mood set, starting at that set's first mood |
-| **A**, **C** | Not used |
+| **A** | Previous mood set, starting at that set's first mood |
+| **C** | Next mood set, starting at that set's first mood |
+| **B** | Not used |
 | **HOME** (back) | Return to the menu |
 | **RESET** (back) | Restart the badge into the menu |
 
 All five front buttons (A, B, C, UP and DOWN) are available to apps. HOME and RESET belong to the firmware.
+
+Small ◀ and ▶ arrows in the bottom corners of the screen, above **A** and **C**, show that those buttons change the mood set. They are hidden when `config.json` has only one set.
 
 Hold a button until the screen starts to change. E-ink takes a moment to refresh, and the firmware does not read the buttons during a refresh, so a very quick tap at that moment can be missed.
 
@@ -41,7 +44,7 @@ Your choice is saved in `/state/mood_badger.json`, so it survives sleep, HOME, R
 
 ## Customising the moods
 
-Moods live in `config.json` inside the app folder. Each set is a list of `[label, image]` pairs, and `initial` (optional) gives the mood each set opens on when you switch to it with **B**:
+Moods live in `config.json` inside the app folder. Each set is a list of `[label, image]` pairs, and `initial` (optional) gives the mood each set opens on when you switch to it with **A** or **C**:
 
 ```json
 {
@@ -55,7 +58,7 @@ Moods live in `config.json` inside the app folder. Each set is a list of `[label
 
 - Images go in the app's `assets` folder.
 - A set holds up to 16 moods, the number of markers that fit down the right edge.
-- Keep labels short. Long labels switch to a smaller font.
+- Keep labels short. Labels use the Smart font and must fit between the set arrows; longer ones switch to the smaller Winds font.
 - If an image is missing, the label still shows. If `config.json` is broken, the badge shows an error that names it.
 
 For your own pictures, any image editor will do: save a 122×136 PNG using black, white and greys. The included images are generated from MoodBadger's JPEGs by `python -m tools.convert_moods`, which fits each one into 122×136 and reduces it to the panel's four greys.
@@ -67,7 +70,7 @@ For your own pictures, any image editor will do: save a 122×136 PNG using black
 | Screen | 296×128, black and white | 264×176, black, white and two greys |
 | Images | JPEG via `jpegdec` | 4-grey PNG via `image.load` |
 | Refresh | TURBO refresh, then a clean-up refresh after 3 seconds | One refresh per change. Firmware v3.1.1 uses the same waveform for every update speed |
-| Mood sets | A, B and C jump straight to sets 1, 2 and 3 | B cycles through any number of sets |
+| Mood sets | A, B and C jump straight to sets 1, 2 and 3 | A and C step back and forward through any number of sets |
 | Third set | A copy of the thumbs set, to give C a shortcut | Weather pictures from MoodBadger's unused images |
 | Sleep | `turn_off()` after each change | Badgeware sleep after 5 seconds on battery; a wake restarts the app |
 | Saved state | `/state.json` | `/state/mood_badger.json` via Badgeware `State` |
@@ -106,7 +109,10 @@ Mood Badger supports the Badger only. Its siblings, [Tufty 2350](https://github.
 - [badgewa.re/docs](https://badgewa.re/docs): guides and API reference
 - [try.badgewa.re](https://try.badgewa.re): browser playground (Tufty only)
 - [Badger 2350 firmware releases](https://github.com/pimoroni/badger2350/releases/latest)
+- [Badger 2350 in the Pimoroni shop](https://shop.pimoroni.com/en-us/products/badger-2350?variant=55801169707387)
+- [Badgeware tube status app](https://learn.pimoroni.com/article/badgeware-tube-status-app): Pimoroni Learn tutorial on building a Badgeware app
 - [simonpainter/MoodBadger](https://github.com/simonpainter/MoodBadger): the original app
+- [Migrating a Badger 2040 app to Badger 2350: MoodBadger](https://forums.pimoroni.com/t/migrating-a-badger2040-app-to-badger2350-moodbadger): Pimoroni forum thread about this port
 - [badger.github.io](https://badger.github.io/), [its app store](https://badger.github.io/apps/) and [`badger/home`](https://github.com/badger/home): GitHub Universe 2026 badge
 - [All Pimoroni Badgeware repositories](https://github.com/orgs/pimoroni/repositories?q=badgeware)
 
@@ -152,7 +158,7 @@ python3 sim/stage.py
 python3 -m http.server -d sim/dist 8000
 ```
 
-Open http://localhost:8000/. Arrow keys are UP and DOWN; `a`, `b`, `c` and `h` are A, B, C and HOME. `tests/test_sim.py` runs the same build headless under Node.
+Open <http://localhost:8000/>. Arrow keys are UP and DOWN; `a`, `b`, `c` and `h` are A, B, C and HOME. The page always loads fresh app files, so after re-staging a normal reload shows your changes. `tests/test_sim.py` runs the same build headless under Node.
 
 The simulator shows layout, art, labels and navigation. It does not model sleep, waking, refresh time or how the e-paper looks, so check those on a real badge. `sim/wasm/SOURCE.md` says where the wasm build came from and how to update it.
 

@@ -16,6 +16,9 @@ ROOT = Path(__file__).resolve().parent.parent
     "https://github.com/pimoroni/badgeware-cpp", "https://github.com/pimoroni/badgeware-fonts",
     "https://github.com/pimoroni/picovector-micropython",
     "https://github.com/pimoroni/tufty2350", "https://github.com/pimoroni/blinky2350",
+    "https://shop.pimoroni.com/en-us/products/badger-2350?variant=55801169707387",
+    "https://learn.pimoroni.com/article/badgeware-tube-status-app",
+    "https://forums.pimoroni.com/t/migrating-a-badger2040-app-to-badger2350-moodbadger",
     "/apps/mood_badger", "v3.1.1",
 ])
 def test_readme_contains_reference(required):
