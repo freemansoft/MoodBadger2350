@@ -18,7 +18,7 @@ MEDIUM_UPDATE = 2 << 4
 NON_BLOCKING = 1 << 9
 
 # Pixels per character, so tests can push labels past the width limit.
-CHAR_WIDTH = {"ignore": 12, "smart": 7, "winds": 5}
+CHAR_WIDTH = {"ignore": 12, "ziplock": 9, "smart": 7, "winds": 5}
 TEXT_HEIGHT = 20
 
 

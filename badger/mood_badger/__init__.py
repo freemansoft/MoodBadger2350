@@ -15,8 +15,8 @@ IMAGE_POS = (61, 2)
 LABEL_CENTRE_X = 122
 # Labels sit level with the set arrows and must fit between them.
 LABEL_MAX_WIDTH = 140
-LABEL_FONT = font.smart
-NARROW_FONT = font.winds
+# Largest first; a label uses the first font it fits in, or the last one.
+LABEL_FONTS = (font.ziplock, font.smart, font.winds)
 
 try:
     with open("config.json") as f:
@@ -50,11 +50,11 @@ def draw(mood_set, mood_index):
             pass
 
     screen.pen = color.black
-    screen.font = LABEL_FONT
-    width, height = screen.measure_text(label)
-    if width > LABEL_MAX_WIDTH:
-        screen.font = NARROW_FONT
+    for label_font in LABEL_FONTS:
+        screen.font = label_font
         width, height = screen.measure_text(label)
+        if width <= LABEL_MAX_WIDTH:
+            break
     screen.text(label, LABEL_CENTRE_X - width / 2, moods.ARROW_MID_Y - height / 2)
 
     # A and C change set; the arrows above them say so. Hidden with only one set.

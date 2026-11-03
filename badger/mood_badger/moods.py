@@ -16,7 +16,8 @@ SCREEN_HEIGHT = 176
 # The x positions follow the stock Hydrate app's A and C hints.
 ARROW_A_X = 43
 ARROW_C_X = 210
-ARROW_MID_Y = 167
+# Midway down the strip between the picture (bottom at 138) and the screen edge.
+ARROW_MID_Y = 157
 ARROW_HALF = 5
 
 

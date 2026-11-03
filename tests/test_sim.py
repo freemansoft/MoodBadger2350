@@ -52,7 +52,7 @@ def test_set_arrows_drawn_and_c_moves_to_next_set(tmp_path):
     assert frames["status"] == "ok"
     # filled arrows above A (left) and C (right), drawn by the real firmware
     for frame in (first, second):
-        assert black(frame, 44, 167) and black(frame, 209, 167)
+        assert black(frame, 44, 157) and black(frame, 209, 157)
     # the next set (thumbs) has two moods and opens on its first
     assert pip_filled(second, 0, count=2)
     assert not pip_filled(second, 1, count=2)

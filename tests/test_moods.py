@@ -2,6 +2,8 @@ import json
 
 import pytest
 
+import moods
+
 from moods import MAX_MOODS, SCREEN_HEIGHT, SCREEN_WIDTH, apply_input, parse_config, pip_positions, restore, set_arrows
 
 CFG = {
@@ -62,8 +64,13 @@ def test_set_arrows_point_left_above_a_and_right_above_c():
     left, right = set_arrows(3)
     assert len(left) == len(right) == 3
     # the tip is the point furthest out: left for A, right for C
-    assert min(left) == (38, 167)
-    assert max(right) == (215, 167)
+    assert min(left) == (38, 157)
+    assert max(right) == (215, 157)
+
+
+def test_set_arrows_sit_midway_between_the_picture_and_the_bottom_edge():
+    # the picture is 136 px tall at y=2, so the strip below it runs from 138 to 176
+    assert moods.ARROW_MID_Y == (138 + SCREEN_HEIGHT) // 2
 
 
 def test_set_arrows_stay_on_screen_and_clear_of_the_pips():
