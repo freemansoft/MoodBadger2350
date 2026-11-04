@@ -7,14 +7,14 @@ Requires Badger 2350 firmware **v3.1.1** or later.
 ## Controls
 
 - **UP** / **DOWN**: previous / next mood
-- **A** / **C**: previous / next mood set (the ◀ ▶ arrows in the bottom corners)
+- **A** / **C**: previous / next mood set (the ◀ ▶ arrows in the bottom corners; hidden, and the buttons do nothing, with only one set)
 - **HOME**: back to the menu
 
 Hold a button until the screen starts to change; a quick tap during a refresh can be missed. On battery the badge sleeps after 5 seconds, and any front button wakes it and moves straight to the next mood.
 
 ## Changing the moods
 
-Edit `config.json` in this folder. `moods` is a list of mood sets; each mood is `[label, image]`, with images in `assets/`. `initial` is optional and sets the mood each set opens on. A set can hold up to 16 moods.
+Edit `config.json` in this folder. `moods` is a list of mood sets; each mood is `[label, image]`, with images in `assets/`. `initial` is optional and sets the mood each set opens on. A set can hold up to 16 moods. To add or remove a set, add or delete its list in `moods` (and its `initial` entry); a single set is fine.
 
 ```json
 {

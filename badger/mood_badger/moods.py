@@ -79,9 +79,10 @@ def apply_input(config, set_index, mood_index, up, down, prev_set, next_set):
 
     A set change wins over up and down and opens the new set at its initial mood.
     Pressing both of a pair (up and down, or prev and next set) cancels it.
+    With a single set, the set buttons do nothing.
     """
     set_step = (1 if next_set else 0) - (1 if prev_set else 0)
-    if set_step:
+    if set_step and len(config["moods"]) > 1:
         new_set = (set_index + set_step) % len(config["moods"])
         return new_set, config["initial"][new_set]
 

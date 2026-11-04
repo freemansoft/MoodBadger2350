@@ -50,10 +50,15 @@ def test_prev_and_next_set_together_cancel():
     assert apply_input(CFG, 0, 2, False, False, True, True) == (0, 2)
 
 
-def test_single_set_change_returns_to_initial():
+def test_set_buttons_do_nothing_with_a_single_set():
     single = {"moods": [CFG["moods"][0]], "initial": [2]}
-    assert apply_input(single, 0, 0, False, False, False, True) == (0, 2)
-    assert apply_input(single, 0, 0, False, False, True, False) == (0, 2)
+    assert apply_input(single, 0, 1, False, False, False, True) == (0, 1)
+    assert apply_input(single, 0, 1, False, False, True, False) == (0, 1)
+
+
+def test_up_and_down_still_work_with_a_set_button_held_and_a_single_set():
+    single = {"moods": [CFG["moods"][0]], "initial": [2]}
+    assert apply_input(single, 0, 0, False, True, False, True) == (0, 1)
 
 
 def test_set_arrows_hidden_with_one_set():

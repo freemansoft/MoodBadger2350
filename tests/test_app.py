@@ -148,3 +148,11 @@ def test_set_arrows_drawn_above_a_and_c_with_several_sets():
 
 def test_no_set_arrows_with_a_single_set():
     assert run_app([set()], config_text='{"moods": [[["Chilled", "happy.png"]]]}').arrows == []
+
+
+@pytest.mark.parametrize("button", [BUTTON_A, BUTTON_C])
+def test_set_buttons_do_not_refresh_with_a_single_set(button):
+    config = '{"moods": [[["Chilled", "happy.png"], ["Sad", "sad.png"]]]}'
+    r = run_app([set(), {button}], saved={"set": 0, "mood": 1}, config_text=config)
+    assert r.events.count("display") == 1
+    assert r.saved is None
