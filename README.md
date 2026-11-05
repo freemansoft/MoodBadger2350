@@ -221,6 +221,18 @@ Open <http://localhost:8000/>. Arrow keys are UP and DOWN; `a`, `b`, `c` and `h`
 
 The simulator shows layout, art, labels and navigation. It does not model sleep, waking, refresh time or how the e-paper looks, so check those on a real badge. `sim/wasm/SOURCE.md` says where the wasm build came from and how to update it.
 
+### Claude Code
+
+The repository is set up for [Claude Code](https://claude.com/claude-code). `CLAUDE.md` holds the project instructions, and `.claude/settings.json` enables the plugins below from the `anthropics/claude-plugins-official` marketplace. Claude Code offers to install them when you trust the folder; `CLAUDE.md` gives the commands to install them by hand.
+
+| Plugin | Used for |
+| --- | --- |
+| `superpowers` | Brainstorming, plans, test-driven development, debugging, code review |
+| `skill-creator` | Creating and improving project skills under `.claude/skills/` |
+| `claude-md-management` | Checking `CLAUDE.md` against the code and saving what a session learned |
+
+Personal permission rules, such as commands Claude may run without asking, go in `.claude/settings.local.json`, which is not committed.
+
 ## Licence
 
 The code in this repository is released under the [MIT Licence](LICENSE).

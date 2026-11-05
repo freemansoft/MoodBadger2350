@@ -5,3 +5,4 @@ __pycache__/
 sim/dist/
 .DS_Store
 .cache/
+.claude/settings.local.json
