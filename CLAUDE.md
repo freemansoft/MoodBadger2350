@@ -14,18 +14,16 @@ Read hardware and runtime behaviour from the firmware source in `vendor/badger23
 
 ## Claude Code plugins
 
-This project requires the plugins below. They are declared in `.claude/settings.json`, and a `SessionStart` hook there installs any that are missing, at project scope. To install them by hand:
+This project requires the plugins below. They are declared in `.claude/settings.json`, and Claude Code offers to install them when you trust the project folder. If it doesn't, install them by hand:
 
 ```sh
 claude plugin install superpowers@claude-plugins-official --scope project
-claude plugin install skill-creator@claude-plugins-official --scope project
 claude plugin install claude-md-management@claude-plugins-official --scope project
 ```
 
 | Plugin                 | Marketplace                          | Use it for                                                                                                 |
 | ---------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | `superpowers`          | `anthropics/claude-plugins-official` | Brainstorming, plans, TDD, systematic debugging, code review, verification                                 |
-| `skill-creator`        | `anthropics/claude-plugins-official` | Creating and improving skills, running skill evals, tuning skill descriptions                              |
 | `claude-md-management` | `anthropics/claude-plugins-official` | Auditing CLAUDE.md against the code (`claude-md-improver`), saving session learnings (`/revise-claude-md`) |
 
 Plugin skills are namespaced: invoke `superpowers:brainstorming`, not `brainstorming`.
@@ -41,11 +39,8 @@ Check for a relevant superpowers skill before starting work, and use it when one
 - Before claiming work is done: `superpowers:verification-before-completion`
 - Reviews: `superpowers:requesting-code-review`, `superpowers:receiving-code-review`
 - Wrapping up: `superpowers:finishing-a-development-branch`
+- Adding or improving a project skill under `.claude/skills/`: `superpowers:writing-skills`
 
 ### CLAUDE.md management
 
 Use `claude-md-management:claude-md-improver` to check CLAUDE.md against the code after larger changes, and `/revise-claude-md` at the end of a session that turned up something future sessions need.
-
-### Skill creator
-
-Use `skill-creator:skill-creator` to add a project skill under `.claude/skills/`, or to improve an existing one, including measuring it with evals and tuning its description so it triggers reliably.
