@@ -1,4 +1,16 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/pytest)",
+      "Bash(.venv/bin/pytest -q)",
+      "Bash(.venv/bin/pytest -q tests/*)",
+      "Bash(.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger)",
+      "Bash(.venv/bin/python -m mpy_cross -o /dev/null *)",
+      "Bash(claude plugin list)",
+      "Bash(claude plugin list *)",
+      "Bash(gh search *)"
+    ]
+  },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true
