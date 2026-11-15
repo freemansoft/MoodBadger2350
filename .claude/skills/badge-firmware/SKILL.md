@@ -6,19 +6,14 @@ description: Check and update the Badgeware firmware on a Badger 2350 (or Tufty 
 # Badge firmware
 
 Mood Badger needs Badgeware firmware **v3.1.1 or later**, the version
-pinned in `vendor/badger2350`. A badge ships with whatever Pimoroni
+pinned in `vendor/badger2350` and `vendor/tufty2350`. A badge ships with whatever Pimoroni
 flashed at the factory, and an app bug can really be an old firmware,
 so know the badge's model and firmware before trusting what it does.
 
 Most steps need the user's hands on the buttons on the back of the
-badge. This is a guided procedure, but don't make the user come back
-and type "done": every tool takes `--wait SECONDS` and watches for the
-drive or serial port itself. Start the command with `--wait 180` **in
-the background** (Bash `run_in_background`), then end your turn with
-exactly what to press and what they should see, so the instructions
-are the last thing they read. You are notified when the command
-finishes. If it timed out, ask what the badge's screen shows; never
-assume a press happened.
+badge. As CLAUDE.md says, start each tool with `--wait 180` in the
+background and end your turn with exactly what to press and what they
+should see. If it timed out, ask what the badge's screen shows.
 
 The tools are standard-library Python, run from the repository root:
 `tools/badge_info.py`, `tools/flash_firmware.py` (helpers in
@@ -31,9 +26,9 @@ the `tools` package. They need `mpremote` on the PATH
 
 | Mode | How the user gets there | What the computer sees |
 | --- | --- | --- |
-| Normal | Press RESET once, or just plug it in | A serial port, `Pimoroni Badger 2350 MicroPython` in `mpremote devs` |
+| Normal | Press RESET once, or just plug it in | A serial port, `Pimoroni Badger 2350 MicroPython` or `Pimoroni Tufty 2350 MicroPython` in `mpremote devs` |
 | Bootloader | Hold BOOT, tap RESET, let go of BOOT | A drive named `RP2350` holding `INFO_UF2.TXT` |
-| Disk mode | Double-tap RESET | A drive named `BADGER` (Pimoroni's README says `Badger2350`) |
+| Disk mode | Double-tap RESET | A drive named `BADGER` (Pimoroni's README says `Badger2350`) or `TUFTY` |
 
 Buttons, with the **back of the badge facing the user**: BOOT is
 towards the far left, RESET is just to the right of BOOT. On battery
@@ -72,9 +67,11 @@ mood, free space, and the latest release with a verdict.
   `badge.model` is set from, so it's just as good. Only
   `os.uname().machine` is a warning sign (below).
 - **It interrupts whatever was running, then restarts the badge**
-  (a hard reset), so it's back on the menu a couple of seconds later.
-  Don't tell the user to press RESET. Don't run it while they are in
-  the middle of using Mood Badger.
+  with `machine.reset()`, so it's back on the menu a couple of seconds
+  later without a button press. A Tufty in start-in-app mode comes back
+  on the app list (the restart HOME makes); RESET brings Mood Badger
+  back. Don't run it while the user is in the middle of using Mood
+  Badger.
 - `model_source` of `os.uname().machine` means Badgeware didn't load:
   the firmware is damaged or not Badgeware. Reflash, and suggest
   `--with-filesystem` (step 2).
@@ -111,7 +108,7 @@ notes for anything Mood Badger depends on: `State`, `image.load`,
 `run()`:
 
 ```bash
-gh release view -R pimoroni/badger2350
+gh release view -R pimoroni/badger2350     # or pimoroni/tufty2350
 ```
 
 Mention anything that looks risky before flashing.
@@ -140,8 +137,10 @@ the chat that wiping the badge is fine, pass `--yes` with it.
 
 The script downloads the UF2 from `pimoroni/<model>2350` releases
 (cached in the system temp folder), checks it is a complete UF2 file,
-and copies it to the `RP2350` drive. The badge restarts into the menu
-by itself after a few seconds. `--tag vX.Y.Z` picks a particular
+and copies it to the `RP2350` drive. The badge restarts by itself after
+a few seconds, normally onto the menu. What a Tufty in start-in-app
+mode opens after a flash hasn't been checked; if it's the app list,
+RESET brings Mood Badger back. `--tag vX.Y.Z` picks a particular
 release; `--download-only` fetches without flashing. Pre-releases (for
 example `v4.0.0-ide.1`) are skipped by "latest"; use one only if the
 user asks for it by tag.

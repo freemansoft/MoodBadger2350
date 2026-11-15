@@ -1,19 +1,18 @@
 # MoodBadger2350
 
-Mood Badger: a MicroPython Badgeware app for the e-ink Pimoroni Badger 2350, ported from MoodBadger. The app is `badger/mood_badger/`; see `README.md` for layout and references.
+Mood Badger: a MicroPython Badgeware app for the Pimoroni Badger 2350 (e-ink) and Tufty 2350 (colour LCD), ported from MoodBadger. One app folder, `badger/mood_badger/`, runs on both; see `README.md` for layout and references.
 
 ## Development
 
 - Set up: `git submodule update --init`, then `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`
 - Test: `.venv/bin/pytest` (includes a headless simulator run when `node` is installed)
-- MicroPython syntax: `.venv/bin/python -m mpy_cross -o /dev/null <file>` for each app module
+- MicroPython syntax: `for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done` (the `kiosk/` boot files go on the badge too)
 - Lint: `.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger`
 - Simulator: `python3 sim/stage.py && python3 -m http.server -d sim/dist 8000`, then `/badger/` or `/tufty/`. Headless: `node sim/run_headless.mjs --model tufty --press DOWN --frames out.json`
-- Real badge: use the project skills `badge-deploy` (copy the app in disk mode) and `badge-firmware` (check or flash firmware in bootloader mode). They drive `tools/badge_info.py`, `tools/install.py` and `tools/flash_firmware.py`, which run as modules (`python3 -m tools.install`). For a button press, start the tool with `--wait 180` in the background and end the turn with the instructions; tell the user not to touch the badge until the tool says "Ejected" or "Flash complete"
-- Ad-hoc `mpremote`: take the port whose `mpremote devs` line says `Badger 2350` (a Tufty and other boards are often plugged in too), and end with `reset` (`mpremote connect <port> exec "..." reset`), or the badge stays frozen on its last screen until RESET. `reset` is `machine.reset()`, the restart HOME makes, so a Tufty in start-in-app mode comes back on the menu (RESET brings Mood Badger back). `/system` (the drive) is read-only from MicroPython, so files only change in disk mode
+- Project skills: `badgeware-platforms` (how the Badger and Tufty differ; read it before writing app code for either), `badge-verify` (which test layers a change needs, simulator and hardware checks, hand checklists), `badge-deploy` (install the app and set what the badge opens) and `badge-firmware` (check or flash firmware). The tools they drive run as modules from the repository root (`python3 -m tools.install`)
+- Button presses on a real badge: start the tool with `--wait 180` in the background and end the turn with the instructions; tell the user not to touch the badge until the tool says "Ejected" or "Flash complete". Never assume a press happened; read the result
+- Ad-hoc `mpremote`: take the port whose `mpremote devs` line names the badge you mean (`Badger 2350` or `Tufty 2350`; other boards are often plugged in too), and end with `reset` (`mpremote connect <port> exec "..." reset`), or the badge stays frozen on its last screen until RESET. `reset` is `machine.reset()`, the restart HOME makes, so a Tufty in start-in-app mode comes back on the app list (RESET brings Mood Badger back). `/system` (the drive) is read-only from MicroPython, so files only change in disk mode
 - Check a copy from the badge's side after the eject (`python3 -m tools.badge_check files`), not by reading the mounted drive: macOS holds writes in its cache until the eject
-- Verifying a change (which test layers, simulator for both badges, hardware checks and hand checklists): use the `badge-verify` skill
-- Badger vs Tufty differences (run loop, screen, boot flow, missing names): see the `badgeware-platforms` skill before writing app code for either badge
 
 Read hardware and runtime behaviour from the firmware source in `vendor/badger2350` and `vendor/tufty2350` (both pinned to `v3.1.1`), not only from badgewa.re/docs: the docs can lag the source. Keep `badger/mood_badger/moods.py` free of Badgeware names so it stays testable on a desktop, and never call `badge.poll()` or `badge.update()` before `run(update)`, or the button press that woke the badge is lost.
 

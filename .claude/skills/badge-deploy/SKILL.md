@@ -16,13 +16,10 @@ RESET). On the drive, `apps/mood_badger` is `/system/apps/mood_badger`
 on the badge. The saved mood is in `/state`, on a separate internal
 partition that isn't on the drive, so updating the app keeps it.
 
-The user's hands are needed for the button presses. Don't make them
-come back and type "done": the tools take `--wait SECONDS` and watch
-for the drive or serial port themselves. Start the command with
-`--wait 180` **in the background** (Bash `run_in_background`), then end
-your turn with the button instructions, so they are the last thing the
-user reads. You are notified when the command finishes; read its
-output then. If it timed out, ask what the badge's screen shows.
+The user's hands are needed for the button presses. As CLAUDE.md says,
+start the tool with `--wait 180` in the background and end your turn
+with the button instructions, so the user doesn't have to come back and
+type "done". If it timed out, ask what the badge's screen shows.
 
 Run the tools from the repository root as modules
 (`python3 -m tools.install`); they are standard-library Python.
@@ -33,14 +30,17 @@ Run the tools from the repository root as modules
 
 A broken import or bad `config.json` shows an error screen on the badge,
 which may be a child's only way to say how they feel. Run the project's
-checks and **stop if any fail**: report the failure and offer to fix it
-instead of copying.
+checks (layers 1 and 2 of the `badge-verify` skill) and **stop if any
+fail**: report the failure and offer to fix it instead of copying.
 
 ```bash
 .venv/bin/pytest -q
-for f in badger/mood_badger/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done
+for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done
 .venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger
 ```
+
+The `kiosk/` files are checked too because `--kiosk` and `--start-in-app`
+copy one of them to the badge as `main.py`.
 
 If `.venv` is missing, set it up as `CLAUDE.md` says. The pytest run
 includes a headless simulator run when `node` is installed. Skip the
@@ -58,10 +58,10 @@ python3 -m tools.badge_info
 It reports the model, whether the firmware looks current, whether Mood
 Badger is installed and the "Start-up" mode (menu, kiosk,
 start-in-app or custom). Note it so you can tell the user if it changes. It restarts the badge when it
-has finished (the menu reappears after a couple of seconds), so the
-user doesn't need to press anything. A Tufty in start-in-app mode
-comes back on the menu too, because this restart is the one HOME makes;
-that is expected, and RESET brings Mood Badger back.
+has finished, onto the menu, or Mood Badger in kiosk mode. A Tufty in
+start-in-app mode also comes back on the app list (this restart is the
+one HOME makes; see `badgeware-platforms`): tell the user that's
+expected and RESET brings Mood Badger back.
 
 - **Firmware OLDER than the latest release, or no build date:** stop
   and use the badge-firmware skill first, then come back.
@@ -86,8 +86,8 @@ python3 -m tools.install --wait 180 --eject
 
 Then tell the user: back of the badge facing them, **double-tap RESET**
 (just right of BOOT, which is far left). The screen shows "USB Disk
-Mode" and a drive named `BADGER` appears (Pimoroni's README calls it
-`Badger2350`); the copy then runs by itself. In the same message, tell
+Mode" and a drive named `BADGER` or `TUFTY` appears (Pimoroni's README
+calls the Badger's `Badger2350`); the copy then runs by itself. In the same message, tell
 them **not to press anything else until you say the drive has
 ejected**: the disk mode screen doesn't change while files are copied
 (only the case lights flicker), so it looks idle when it isn't. End
@@ -135,26 +135,28 @@ the drive may be full (badge_info's free space line) or the cable flaky.
 
 ### 5. Confirm on the badge
 
-Check the copy from the badge's side first, with
-`python3 -m tools.badge_check files` (it restarts the badge onto the
-menu). The `badge-verify` skill has the hand checklist for each badge.
+In this order:
 
-Only after the script prints "Ejected", tell the user it's safe to
-touch the badge. It restarts into the menu by itself, or straight into
-Mood Badger in kiosk mode. In start-in-app mode it also restarts into the
-app list (the eject's restart is a watchdog reboot, like HOME; seen on a
-real Tufty), so tell the user to press RESET once to open Mood Badger.
-If the disk mode screen is still up after
-10 seconds, they press RESET once. If the eject failed, have them eject
-the drive from Finder before pressing anything. Ask them to open Mood Badger and check the change
-they made: the mood, label or image they edited, and that UP/DOWN
-and A/C still move between moods and sets. On a Badger the e-ink takes
-a moment to refresh, so they should hold each button until the screen
-starts to change. On a Tufty the first press on a dimmed screen only
-brightens it.
+1. Only after the script prints "Ejected", tell the user it's safe to
+   touch the badge. If it printed that the eject failed, have them
+   eject the drive from Finder before pressing anything.
+2. It restarts by itself: onto the menu, or Mood Badger in kiosk mode.
+   A Tufty in start-in-app mode restarts onto the app list (the eject's
+   restart is the one HOME makes): tell the user to press RESET once.
+   If the disk mode screen is still up after 10 seconds, they press
+   RESET once.
+3. If what the screen shows matters (a start-up mode change), ask the
+   user what they see **before** the next step, which restarts the
+   badge and would hide it.
+4. Check the copy from the badge's side:
+   `python3 -m tools.badge_check files`. It restarts the badge onto the
+   menu (app list), so the user may need RESET again on a start-in-app
+   Tufty.
+5. Ask the user to check the change they made, using the hand
+   checklist for that badge in the `badge-verify` skill.
 
-Report what was copied (file count), the start-up mode, and anything the
-user should look at by hand.
+Report what was copied (file count), the start-up mode, the file check,
+and anything the user should look at by hand.
 
 ## Tufty 2350
 
