@@ -185,6 +185,8 @@ verdict.
 
 ## Tufty 2350
 
+Badger vs Tufty differences: see the `badgeware-platforms` skill.
+
 The tools already handle the Tufty: `badge_info` reads `badge.model`
 as `"tufty"`, and `flash_firmware --model tufty` fetches from
 `pimoroni/tufty2350`. The button procedure is the same. Two things to

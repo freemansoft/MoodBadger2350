@@ -142,6 +142,8 @@ user should look at by hand.
 
 ## Tufty 2350
 
+Badger vs Tufty differences: see the `badgeware-platforms` skill.
+
 `tools/install.py` maps each badge model to an app folder in `APPS`.
 Only `"badger"` is there today, so on a Tufty (drive `TUFTY` or
 `Tufty2350`, or `badge.model == "tufty"`) the tool copies nothing and
