@@ -160,3 +160,42 @@ def test_pip_positions_are_centred_for_eight():
 
 def test_pip_positions_stay_on_screen_at_maximum():
     assert all(0 <= y and y + 8 <= 176 for _, y in pip_positions(MAX_MOODS))
+
+
+# Per-model layouts and the Tufty backlight rule
+
+from moods import BADGER, DIM_AFTER_MS, LAYOUTS, TUFTY, backlight_level  # noqa: E402
+
+
+def test_badger_layout_matches_the_existing_constants():
+    assert BADGER["pip_x"] == moods.PIP_X and BADGER["arrow_mid_y"] == moods.ARROW_MID_Y
+    assert set_arrows(3, BADGER) == set_arrows(3)
+    assert pip_positions(8, BADGER) == pip_positions(8)
+
+
+def test_layouts_keyed_by_badge_model():
+    assert LAYOUTS == {"badger": BADGER, "tufty": TUFTY}
+
+
+def test_tufty_picture_is_the_badger_picture_scaled_one_and_a_half():
+    assert TUFTY["image_size"] == (183, 204)
+    x, y = TUFTY["image_pos"]
+    assert x + 183 < TUFTY["pip_x"] and y + 204 < TUFTY["arrow_mid_y"] - TUFTY["arrow_half"]
+
+
+def test_tufty_arrows_and_pips_stay_on_screen_and_apart():
+    for x, y in [p for arrow in set_arrows(2, TUFTY) for p in arrow]:
+        assert 0 <= x < TUFTY["pip_x"] and 0 <= y < 240
+    assert all(0 <= y and y + TUFTY["pip_size"] <= 240 for _, y in pip_positions(MAX_MOODS, TUFTY))
+
+
+@pytest.mark.parametrize("idle_ms,on_usb,level", [
+    (0, False, 1.0), (DIM_AFTER_MS - 1, False, 1.0), (DIM_AFTER_MS, False, 0.15),
+    (0, True, 1.0), (DIM_AFTER_MS, True, 0.5), (10 * 60_000, False, 0.15),
+])
+def test_backlight_level(idle_ms, on_usb, level):
+    assert backlight_level(idle_ms, on_usb) == level
+
+
+def test_backlight_never_goes_dark():
+    assert min(backlight_level(10**9, usb) for usb in (True, False)) > 0
