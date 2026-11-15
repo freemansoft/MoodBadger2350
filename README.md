@@ -216,7 +216,7 @@ Mood Badger supports the Badger only. Its siblings, [Tufty 2350](https://github.
 | [`badger2350`](https://github.com/pimoroni/badger2350) | E-ink firmware and stock apps; the source of truth for behaviour |
 | [`badgeware-docs`](https://github.com/pimoroni/badgeware-docs) | Source of the `badgewa.re/docs` site |
 | [`badgeware-contrib`](https://github.com/pimoroni/badgeware-contrib) | Community apps; where to share Mood Badger |
-| [`badgeware-wasm`](https://github.com/pimoroni/badgeware-wasm) | WebAssembly simulator with a Badger variant; used by `sim/` |
+| [`badgeware-wasm`](https://github.com/pimoroni/badgeware-wasm) | WebAssembly simulator with Badger and Tufty variants; used by `sim/` |
 | [`badgeware-simulator`](https://github.com/pimoroni/badgeware-simulator) | Native desktop simulator |
 | [`badgeware-web-simulator`](https://github.com/pimoroni/badgeware-web-simulator) | Browser simulator at `try.badgewa.re`, Tufty only |
 | [`badgeware-ide`](https://github.com/pimoroni/badgeware-ide) | Prototype browser IDE, Tufty only |
@@ -227,7 +227,7 @@ Mood Badger supports the Badger only. Its siblings, [Tufty 2350](https://github.
 
 ## Development
 
-`vendor/` holds two pinned submodules: `badger2350` at `v3.1.1` (the firmware, for reference and the simulator) and `MoodBadger` (the source art).
+`vendor/` holds three pinned submodules: `badger2350` and `tufty2350`, both at `v3.1.1` (the firmware, for reference and the simulator), and `MoodBadger` (the source art).
 
 ```sh
 git submodule update --init
@@ -246,16 +246,16 @@ The app's logic is in `moods.py`, which has no Badgeware dependencies. `__init__
 
 ### Simulator
 
-`sim/` runs the real firmware Python and the unmodified app in the Badger build of [`badgeware-wasm`](https://github.com/pimoroni/badgeware-wasm):
+`sim/` runs the real firmware Python and the unmodified app in the Badger and Tufty builds of [`badgeware-wasm`](https://github.com/pimoroni/badgeware-wasm):
 
 ```sh
 python3 sim/stage.py
 python3 -m http.server -d sim/dist 8000
 ```
 
-Open <http://localhost:8000/>. Arrow keys are UP and DOWN; `a`, `b`, `c` and `h` are A, B, C and HOME. The page always loads fresh app files, so after re-staging a normal reload shows your changes. `tests/test_sim.py` runs the same build headless under Node.
+Open <http://localhost:8000/> and choose the Badger (`/badger/`) or the Tufty (`/tufty/`). Arrow keys are UP and DOWN; `a`, `b`, `c` and `h` are A, B, C and HOME. The page always loads fresh app files, so after re-staging a normal reload shows your changes. `tests/test_sim.py` runs both builds headless under Node (`node sim/run_headless.mjs --model tufty ...`).
 
-The simulator shows layout, art, labels and navigation. It does not model sleep, waking, refresh time or how the e-paper looks, so check those on a real badge. `sim/wasm/SOURCE.md` says where the wasm build came from and how to update it.
+The simulator shows layout, art, labels and navigation. It does not model sleep, waking, refresh time or how the e-paper looks, or the Tufty's battery power (it always dims to the USB level), so check those on a real badge. `sim/wasm/SOURCE.md` says where the wasm build came from and how to update it.
 
 ### Claude Code
 
