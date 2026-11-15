@@ -81,6 +81,8 @@ A Tufty always opens Pimoroni's app list when it starts, so the normal setup is 
 python3 -m tools.install --start-in-app --eject
 ```
 
+After the eject the Tufty restarts into the app list (the eject restarts it the way HOME does); press **RESET** once to open Mood Badger. From then on, power-on and RESET open Mood Badger.
+
 This replaces `main.py` with [`kiosk/start_in_app.py`](kiosk/start_in_app.py), which tells a HOME restart from any other start by the firmware's restart reason. To undo it, run `python3 -m tools.install --menu --eject`, or copy the Tufty's stock file back:
 
 ```sh

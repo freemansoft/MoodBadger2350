@@ -251,12 +251,16 @@ def main():
     elif args.menu:
         set_main(root, STOCK_MAINS[model])
         print("Menu restored: main.py is the stock one from vendor/{}2350 (v3.1.1).".format(model))
-    print("Start-up: {}".format(boot_mode((root / "main.py").read_text())))
+    mode = boot_mode((root / "main.py").read_text())
+    print("Start-up: {}".format(mode))
 
     if args.eject:
         if eject(root):
             print("Ejected. The badge restarts by itself; if the disk screen is still\n"
                   "showing after 10 seconds, press RESET once.")
+            if mode == "start-in-app":
+                # The restart after an eject is a watchdog reboot, like HOME.
+                print("It opens on the app list: press RESET once to open Mood Badger.")
         else:
             print("Couldn't eject {}. Don't press RESET yet: eject it from Finder\n"
                   "first, or some files may not reach the badge.".format(root))

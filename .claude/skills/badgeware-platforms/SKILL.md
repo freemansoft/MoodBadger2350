@@ -81,5 +81,13 @@ submodule**.
 Confirmed on a Tufty at v3.1.1 (2026-11-15): a single RESET reports
 `WAKE_RESET` (241), `machine.reset()` (HOME, `mpremote ... reset`,
 `tools.badge_info`) `WAKE_WATCHDOG` (242), and a double-tap
-`WAKE_DOUBLETAP` (5). So anything that calls `machine.reset()` lands a
-start-in-app Tufty on the menu, not only HOME.
+`WAKE_DOUBLETAP` (5). The restart after ejecting the disk-mode drive
+is also `WAKE_WATCHDOG`. So anything that calls `machine.reset()`, and
+every install, lands a start-in-app Tufty on the menu, not only HOME;
+RESET brings Mood Badger back.
+
+Checked by hand on that Tufty: RESET and power-on (hold RESET, then a
+front button) open Mood Badger; RESET after HOME opens Mood Badger, so
+the watchdog flag doesn't stick; the waking press doesn't change the
+mood; dimming to 0.5 on USB and 0.15 on battery, both still readable;
+the `TUFTY` layout's arrows sit above A and C.

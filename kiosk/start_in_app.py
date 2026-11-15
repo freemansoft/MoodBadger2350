@@ -10,8 +10,9 @@
 # HOME calls reset(), which on the Tufty is machine.reset(): a watchdog
 # reboot. So does machine.reset() from anywhere else, which gives these
 # accepted side effects, all landing on the menu (RESET brings Mood Badger
-# back): dismissing an error screen, and `mpremote ... reset` (which
-# python3 -m tools.badge_info runs). No state has to be saved to tell
+# back): dismissing an error screen, `mpremote ... reset` (which
+# python3 -m tools.badge_info runs), and the restart after ejecting the
+# disk-mode drive, so after every install. No state has to be saved to tell
 # HOME from RESET or power-on. Confirmed on a Tufty at v3.1.1: RESET gives
 # WAKE_RESET (241), machine.reset() WAKE_WATCHDOG (242), a double-tap
 # WAKE_DOUBLETAP (5, disk mode before this file runs).

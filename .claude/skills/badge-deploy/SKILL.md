@@ -137,7 +137,10 @@ the drive may be full (badge_info's free space line) or the cable flaky.
 
 Only after the script prints "Ejected", tell the user it's safe to
 touch the badge. It restarts into the menu by itself, or straight into
-Mood Badger in kiosk or start-in-app mode; if the disk mode screen is still up after
+Mood Badger in kiosk mode. In start-in-app mode it also restarts into the
+app list (the eject's restart is a watchdog reboot, like HOME; seen on a
+real Tufty), so tell the user to press RESET once to open Mood Badger.
+If the disk mode screen is still up after
 10 seconds, they press RESET once. If the eject failed, have them eject
 the drive from Finder before pressing anything. Ask them to open Mood Badger and check the change
 they made: the mood, label or image they edited, and that UP/DOWN
