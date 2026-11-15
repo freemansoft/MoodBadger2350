@@ -29,6 +29,20 @@ diskutil eject /Volumes/BADGER
 
 Keep the trailing `/` on `badger/mood_badger/`, so rsync copies the folder's contents into `apps/mood_badger` rather than nesting a second folder inside it. If no drive appears in disk mode, try another cable: some USB-C cables only carry power.
 
+### Using the install tools
+
+The repository's `tools/` has three scripts for a badge on USB. Run them from the repository root; they work on macOS, Linux and Windows with no extra packages, except `mpremote` (`pip install mpremote`) for `badge_info`.
+
+| Command | Badge mode | What it does |
+| --- | --- | --- |
+| `python3 -m tools.badge_info` | Normal (press **RESET** once) | Shows the model, whether the firmware is the latest release, whether Mood Badger is installed and whether kiosk mode is on. Interrupts the running app to read the badge, then restarts it |
+| `python3 -m tools.install --eject` | Disk (double-tap **RESET**) | Copies only the app's files, removes files the app no longer has, checks the copy and ejects. Add `--kiosk` or `--menu` to turn [kiosk mode](#make-it-the-only-app) on or off |
+| `python3 -m tools.flash_firmware --model badger --firmware-only` | Bootloader (hold **BOOT**, tap **RESET**, let go of **BOOT**) | Downloads the latest firmware and flashes it, keeping apps and files. `--with-filesystem` instead resets every app and file to Pimoroni's defaults |
+
+Each takes `--wait SECONDS`, which keeps looking for the badge that long, so you can start the command and then press the buttons.
+
+In Claude Code, the `badge-deploy` and `badge-firmware` skills run these for you and say which buttons to press.
+
 ### Make it the only app
 
 To make the badge a dedicated mood badge that never shows the menu, replace `main.py` at the root of the drive with [`kiosk/main.py`](kiosk/main.py). Install the app as above first, then, with the badge still in disk mode:
