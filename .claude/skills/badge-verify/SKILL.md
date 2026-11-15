@@ -1,6 +1,6 @@
 ---
 name: badge-verify
-description: How to test and verify a Mood Badger change on both badges (Badger 2350 e-ink and Tufty 2350 LCD) - which test layers a change needs, the exact commands (pytest with the fake Badgeware, mpy-cross and ruff, the headless and browser badgeware-wasm simulator for each badge, rendering simulator frames to images), and the real-hardware checks (badge_info, install, checking the copy from the badge's side, reading wake reasons with a watcher) with a hand checklist for each badge. Use it whenever you change badger/mood_badger, kiosk/, tools/ or sim/, bump firmware, finish a feature, prepare or review a PR, or the user asks to test, verify, smoke-test, check on the badge, "make sure it still works on the Badger", or try something in the simulator - even if they only say "is it done?".
+description: How to test and verify a Mood Badger change on both badges (Badger 2350 e-ink and Tufty 2350 LCD) - which test layers a change needs, the exact commands (pytest with the fake Badgeware, mpy-cross and ruff, the headless and browser badgeware-wasm simulator for each badge, rendering simulator frames to images), and the real-hardware checks (badge_info, install, checking the copy from the badge's side, reading wake reasons with a watcher) with a hand checklist for each badge. Use it whenever you change badger/mood_badger, kiosk/, tools/ or sim/, bump firmware, finish a feature, prepare or review a PR, or the user asks to test, verify, smoke-test, check on the badge, "make sure it still works on the Badger", or try something in the simulator - even if they only say "is it done?". For the install itself use badge-deploy; for firmware, badge-firmware.
 ---
 
 # Verifying Mood Badger on both badges
@@ -102,10 +102,8 @@ layer 5.
 ## 5. Real badges (the user's hands)
 
 Use the `badge-firmware` and `badge-deploy` skills for firmware and
-installs. For every step that needs a button press, start the command
-with a wait **in the background**, end your turn with exactly what to
-press, and tell the user not to touch the badge until you report
-"Ejected" or the result. Never assume a press happened: read the result.
+installs, and CLAUDE.md's rule for button presses (a background
+`--wait`, instructions last, hands off until the result).
 
 - **Two badges plugged in:** the tools ask for `--port`; `mpremote devs`
   names each one (`Badger 2350`, `Tufty 2350`). A badge on battery sleeps
@@ -129,7 +127,9 @@ Steps:
    background and ask for a single RESET tap: expect `WAKE_RESET` (241).
    `machine.reset()`, HOME and the restart after an eject give
    `WAKE_WATCHDOG` (242). A double-tap gives `WAKE_DOUBLETAP` (5) and
-   disk mode. If the user double-tapped, say so; it isn't a fault.
+   disk mode. If the user double-tapped, say so; it isn't a fault. The
+   `badgeware-platforms` skill holds these codes and what was confirmed
+   on hardware; update it if a badge reports something else.
 5. Hand checklist below, for each badge the change can affect. Ask the
    user to report anything that looks wrong at each step.
 
