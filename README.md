@@ -1,16 +1,32 @@
-# Badger 2350 Mood Display
+# Badger 2350 and Tufty 2350 Mood Display
 
 Mood Badger is a visual communication aid for neurodivergent children. It turns a Pimoroni [Badger 2350](https://github.com/pimoroni/badger2350) e-ink badge into a mood display: the child presses a button to show how they feel, with a picture and a word, so they can share their emotional state without having to say it. The e-ink screen keeps showing the mood even while the badge is asleep.
 
-The same app also runs on the colour-screen [Tufty 2350](https://github.com/pimoroni/tufty2350), showing the same pictures larger. See [On a Tufty 2350](#on-a-tufty-2350).
+The same app also runs on the colour-screen [Tufty 2350](https://github.com/pimoroni/tufty2350), showing the same pictures larger. See [Badger or Tufty](#badger-or-tufty) for how the two behave differently.
 
 Mood Badger 2350 is a port of Simon Painter's [MoodBadger](https://github.com/simonpainter/MoodBadger) for the original Badger 2040, a project I was fortunate to contribute to.
 
 ![Mood Badger showing every mood and set in the simulator](docs/images/sim-tour.png)
 
+## Badger or Tufty
+
+One app folder, `badger/mood_badger`, runs on both badges with the same moods, pictures and buttons. It checks which badge it is on when it starts. Each badge keeps its own saved mood.
+
+| | Badger 2350 | Tufty 2350 |
+| --- | --- | --- |
+| Screen | 264×176 e-ink; keeps showing the mood with the power off | 320×240 colour LCD with a backlight; pictures shown 1.5× larger, in the same black and white |
+| Pressing a button | The screen takes a moment to change; hold the button until it does | Changes at once, unless the screen is dimmed (below) |
+| When left alone | Sleeps after 5 seconds on battery; never on USB | Dims after 10 seconds: to about half on USB, about 15% on battery. Never goes dark and never sleeps |
+| The first press after that | Wakes the badge **and** moves one mood | Only brightens the screen; the next press changes the mood |
+| Battery | Lasts a long time: power is only used when the mood changes | Hours rather than days, because the screen is lit and redrawn continuously (not yet measured) |
+| Turning it off | Not needed; it sleeps by itself | Hold **RESET** until the case lights fade; any front button turns it on |
+| What it opens at start-up | Waking from sleep returns to Mood Badger; RESET opens the menu (Mood Badger in [kiosk mode](#make-it-the-only-app)) | Pimoroni's app list. Install with `--start-in-app` to open Mood Badger instead ([details](#on-a-tufty-2350)) |
+| After installing with the tools | Restarts into the menu (Mood Badger in kiosk mode) | Restarts into the app list in start-in-app mode; press **RESET** once to open Mood Badger |
+| Disk-mode drive | `BADGER` | `TUFTY` |
+
 ## Install
 
-You need a Badger 2350 running firmware **v3.1.1** or later. Firmware and update steps are on the [Badger 2350 releases page](https://github.com/pimoroni/badger2350/releases/latest).
+You need a Badger 2350 or Tufty 2350 running firmware **v3.1.1** or later. Firmware and update steps are on the [Badger 2350](https://github.com/pimoroni/badger2350/releases/latest) and [Tufty 2350](https://github.com/pimoroni/tufty2350/releases/latest) releases pages. The steps below use the Badger's drive name; on a Tufty it is `TUFTY`, and the [Tufty section](#on-a-tufty-2350) adds its start-up setting.
 
 1. Connect the badge to your computer with a USB-C data cable.
 2. Double-tap **RESET** on the back of the badge to enter disk mode. A drive appears; Pimoroni's README calls it `Badger2350` and the Badgeware docs call it `BADGER`.
@@ -107,15 +123,27 @@ All five front buttons (A, B, C, UP and DOWN) are available to apps. HOME and RE
 
 Small ◀ and ▶ arrows in the bottom corners of the screen, above **A** and **C**, show that those buttons change the mood set. With only one set in `config.json`, the arrows are hidden and **A** and **C** do nothing.
 
-Hold a button until the screen starts to change. E-ink takes a moment to refresh, and the firmware does not read the buttons during a refresh, so a very quick tap at that moment can be missed.
+On a Badger, hold a button until the screen starts to change. E-ink takes a moment to refresh, and the firmware does not read the buttons during a refresh, so a very quick tap at that moment can be missed. On a Tufty the screen changes at once, but when it is dimmed the first press only brightens it.
 
 ## How power works
+
+### Badger 2350
 
 The Badger only uses power when the screen changes. Mood Badger draws the chosen mood, saves it, then sleeps after 5 seconds on battery. The e-paper keeps showing the mood while the badge sleeps.
 
 Any front button wakes the badge. It restarts straight back into Mood Badger and acts on the button that woke it, so a single press moves one mood. On USB power the badge never sleeps.
 
-Your choice is saved in `/state/mood_badger.json`, so it survives sleep, HOME, RESET and a flat battery.
+### Tufty 2350
+
+The Tufty's screen needs its backlight to be seen, so Mood Badger never puts it to sleep. Instead it dims the backlight after 10 seconds without a press: to about half on USB power, and to about 15% on battery, where it changes as soon as the cable is unplugged. The mood stays visible while dimmed.
+
+The first press on a dimmed screen only brightens it, so the child sees the current mood before changing it; the next press changes the mood. The press that turns the badge on works the same way.
+
+Because the screen stays lit, a Tufty on battery runs for hours rather than days (an estimate; not yet measured). Turn it off by holding **RESET** on the back until the case lights fade; any front button turns it on again, back in Mood Badger in start-in-app mode.
+
+### Both
+
+Your choice is saved in `/state/mood_badger.json`, so it survives sleep, power-off, HOME, RESET and a flat battery. Each badge keeps its own.
 
 ## Customising the moods
 
@@ -192,13 +220,13 @@ The mood images are Google Material icons under the Apache License 2.0, and the 
 
 [badger.github.io](https://badger.github.io/) and its [app store](https://badger.github.io/apps/) are for the **GitHub Universe 2026 badge**. That badge is a custom version of Pimoroni's Tufty 2350 with a 320×240 colour screen and different controls. Its 15 preinstalled apps and the store's catalog come from [`badger/home`](https://github.com/badger/home), which only accepts apps tested on that hardware, so it is not a route for this e-ink app.
 
-The store's **Add local app** copies a folder to a badge in disk mode. It has not yet been tried with an e-ink Badger.
+The store's **Add local app** copies a folder to a badge in disk mode. It has not been tried with Mood Badger on either badge.
 
-A Tufty port of Mood Badger could use `badger/home` or the `Tufty/` folder of `badgeware-contrib`.
+Now that Mood Badger runs on the Tufty, it could also be offered through `badger/home` or the `Tufty/` folder of `badgeware-contrib`; neither has been tried.
 
 ## Tufty and Blinky
 
-Mood Badger supports the Badger only. Its siblings, [Tufty 2350](https://github.com/pimoroni/tufty2350) (colour LCD) and [Blinky 2350](https://github.com/pimoroni/blinky2350) (LED matrix), run the same Badgeware API, so a port would mainly need a new layout.
+Mood Badger supports the Badger 2350 and the [Tufty 2350](https://github.com/pimoroni/tufty2350) (colour LCD); see [Badger or Tufty](#badger-or-tufty). The [Blinky 2350](https://github.com/pimoroni/blinky2350) (LED matrix) runs the same Badgeware API but is not supported: an LED matrix can't show the pictures as they are, so it would need its own design. The `badgeware-platforms` Claude Code skill lists what differs between the badges, with references to the firmware source.
 
 ## References
 
