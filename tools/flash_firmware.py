@@ -29,6 +29,7 @@ Adapted from claude-buddy-badgeware's tools/flash_firmware.py.
 
 import argparse
 import shutil
+import subprocess
 import sys
 import tempfile
 import urllib.request
@@ -38,11 +39,31 @@ from tools import badgeware_release as rel
 
 BOOT_LABEL = "RP2350"
 CACHE = Path(tempfile.gettempdir()) / "badgeware-firmware"
+# Seconds to wait for the badge to boot the new firmware and reappear.
+RESTART_TIMEOUT = 30
 
 
 def find_boot_drives():
     """Mounted RP2350 bootloader drives (they hold INFO_UF2.TXT)."""
     return [d for d in rel.find_volumes((BOOT_LABEL,)) if (d / "INFO_UF2.TXT").is_file()]
+
+
+def _mpremote_devs():
+    try:
+        return subprocess.run(["mpremote", "devs"], capture_output=True, text=True,
+                              timeout=15).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def wait_for_restart(model, timeout, list_devs=_mpremote_devs, interval=2):
+    """The serial port of a ``model`` badge back in normal mode, or None
+    if none appears within ``timeout`` seconds. Its return is the sure
+    sign the badge took the image and booted it."""
+    def find():
+        return [port for port, found in rel.badge_ports(list_devs()) if found == model]
+    ports = rel.wait_for(find, timeout, interval=interval)
+    return ports[0] if ports else None
 
 
 def download(asset):
@@ -133,16 +154,28 @@ def main():
         confirm_wipe(args.model, args.yes)
     print("Flashing {} firmware to {} ...".format(args.model, dest))
     print("(This must be a {}: the bootloader can't tell.)".format(args.model.capitalize()))
+    print("Don't press any buttons until this says the flash is complete.", flush=True)
     try:
         shutil.copyfile(path, dest / path.name)
-    except OSError as e:
+    except OSError:
         # The drive vanishes as soon as the badge takes the image, which
-        # some systems report as an error at the very end of the copy.
-        print("The drive went away during the copy ({}).".format(e))
-        print("If the badge restarted into the menu, it worked; otherwise run this again.")
-        return
-    print("Done. The badge restarts into the menu by itself.")
-    print("Check it with: python3 -m tools.badge_info")
+        # some systems (macOS) report as an error at the end of the copy.
+        # Whether it worked is decided below, by the badge coming back.
+        pass
+    print("Copied. Waiting for the badge to restart ...", flush=True)
+    port = wait_for_restart(args.model, RESTART_TIMEOUT)
+    if port:
+        print("Flash complete: the {} is back in normal mode on {}.".format(
+            args.model.capitalize(), port))
+        print("Check it with: python3 -m tools.badge_info")
+    elif (dest / "INFO_UF2.TXT").is_file():
+        sys.exit("The badge is still in bootloader mode, so it didn't take the image.\n"
+                 "Run this again; the RP2350 drive is still there, so no buttons are needed.")
+    else:
+        sys.exit("The badge didn't come back on USB within {} s. If its screen shows the\n"
+                 "menu, the flash worked (or mpremote is missing). Otherwise press RESET once,\n"
+                 "then check it with: python3 -m tools.badge_info --wait 30".format(
+                     RESTART_TIMEOUT))
 
 
 if __name__ == "__main__":

@@ -145,8 +145,16 @@ release; `--download-only` fetches without flashing. Pre-releases (for
 example `v4.0.0-ide.1`) are skipped by "latest"; use one only if the
 user asks for it by tag.
 
-A "drive went away during the copy" message is normal on some systems:
-the badge takes the image and reboots before the copy call returns.
+The script decides whether the flash worked by waiting up to 30 s for
+the badge to come back in normal mode, so read its last lines:
+
+- **"Flash complete"**: tell the user it's done and safe to touch.
+- **"still in bootloader mode"**: the badge didn't take the image (or
+  someone pressed BOOT and RESET again). The `RP2350` drive is still
+  mounted, so run the same command again with no button presses.
+- **"didn't come back on USB"**: ask what the screen shows. The menu
+  means it worked. Otherwise ask for one RESET press and check with
+  `badge_info --wait 30`.
 
 Flashing the other model's firmware doesn't brick a badge (the
 bootloader is in ROM), but nothing works until the right image is on

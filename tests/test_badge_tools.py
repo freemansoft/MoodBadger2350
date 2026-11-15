@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from tools import badgeware_release as rel
-from tools import badge_info, install
+from tools import badge_info, flash_firmware, install
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -266,3 +266,22 @@ def test_badge_info_restarts_the_badge_after_reading_it():
     assert cmd[:4] == ["mpremote", "connect", "/dev/cu.usbmodem1101", "exec"]
     assert cmd[-1] == "reset"
     assert "reset" not in badge_info.mpremote_command("/dev/x", restart=False)
+
+
+# --- flash_firmware: knowing when the flash has finished ----------------------
+
+BADGER_DEVS = "/dev/cu.usbmodem201401 43a7 2e8a:1100 Pimoroni Pimoroni Badger 2350 MicroPython\n"
+
+
+def test_flash_is_confirmed_when_the_badge_is_back_in_normal_mode():
+    answers = iter(["", "", BADGER_DEVS])
+    port = flash_firmware.wait_for_restart(
+        "badger", timeout=10, list_devs=lambda: next(answers), interval=0)
+    assert port == "/dev/cu.usbmodem201401"
+
+
+def test_flash_confirmation_ignores_other_badges_and_gives_up():
+    tufty_only = DEVS  # a Tufty and a Particle board, but no Badger
+    port = flash_firmware.wait_for_restart(
+        "badger", timeout=0, list_devs=lambda: tufty_only, interval=0)
+    assert port is None
