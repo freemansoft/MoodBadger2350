@@ -167,3 +167,9 @@ def test_badger_on_exit_does_nothing():
 def test_badger_draws_with_the_named_colours():
     r = run_app([set()])
     assert r.clear_pens == ["white"] and r.text_pens == ["black"]
+
+
+def test_badger_picture_that_fails_to_draw_still_shows_the_label():
+    # A crash here would repeat on every launch, because this mood is saved.
+    r = run_app([set()] * 2, blit_fails=("sent_chilled.png",))
+    assert r.fatal is None and ("Chilled", "ignore") in r.texts

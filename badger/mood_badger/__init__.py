@@ -66,6 +66,14 @@ def draw_label_and_marks(mood_set, mood_index):
         screen.shape(pip if i == mood_index else pip.stroke(1))
 
 
+def blit_picture(picture, where):
+    # Like a bad load, a picture that fails to draw must not crash the app.
+    try:
+        screen.blit(picture, where)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def load_picture(image_name):
     # A missing or undecodable image still shows the label. Crashing here
     # would repeat on every launch, because this mood is already saved.
@@ -87,7 +95,7 @@ def draw(mood_set, mood_index):
 
     picture = load_picture(mood_set[mood_index][1])
     if picture is not None:
-        screen.blit(picture, vec2(*layout["image_pos"]))
+        blit_picture(picture, vec2(*layout["image_pos"]))
 
     draw_label_and_marks(mood_set, mood_index)
 
@@ -164,7 +172,7 @@ def update_tufty():
     if picture is not None:
         x, y = layout["image_pos"]
         w, h = layout["image_size"]
-        screen.blit(picture, rect(x, y, w, h))
+        blit_picture(picture, rect(x, y, w, h))
     draw_label_and_marks(mood_set, state["mood"])
 
 

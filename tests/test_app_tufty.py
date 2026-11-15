@@ -106,3 +106,9 @@ def test_tufty_draws_in_pure_black_and_white_like_the_pictures():
     r = run_app([set()] * 2, **T)
     assert r.clear_pens == [(255, 255, 255)] * 2
     assert r.text_pens == [(0, 0, 0)] * 2
+
+
+def test_tufty_picture_that_fails_to_draw_still_shows_the_label():
+    # A crash here would repeat on every launch, because this mood is saved.
+    r = run_app([set()] * 2, blit_fails=("sent_chilled.png",), **T)
+    assert r.fatal is None and ("Chilled", "ignore") in r.texts

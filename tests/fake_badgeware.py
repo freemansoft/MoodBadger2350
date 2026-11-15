@@ -118,12 +118,16 @@ class _Screen:
         self._r = result
         self.pen = None
         self.font = _Font("sins")
+        self.unblittable = ()
 
     def clear(self):
         self._r.events.append("clear")
         self._r.clear_pens.append(self.pen)
 
     def blit(self, img, pos):
+        if os.path.basename(img.path) in self.unblittable:
+            # Decoded, but picovector fails to draw it.
+            raise RuntimeError("cannot blit " + img.path)
         self._r.events.append("blit")
         self._r.blits.append(img.path)
         self._r.blit_rects.append(tuple(pos))
@@ -199,13 +203,14 @@ class _Badge:
 
 
 def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=(), files_corrupt=(),
-            model="badger", usb=True, frame_ms=1000):
+            model="badger", usb=True, frame_ms=1000, blit_fails=()):
     """Run the app for one update() per entry in ticks (a set of buttons
     pressed that frame). usb is the power source, or a list with one value
     per tick; on the Tufty, badge.ticks advances frame_ms per tick."""
     result = Result()
     badge = _Badge(result, update_polls, model, usb)
     screen = _Screen(result)
+    screen.unblittable = tuple(blit_fails)
 
     class State:
         @staticmethod
