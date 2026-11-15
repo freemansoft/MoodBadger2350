@@ -3,7 +3,8 @@
 The badge must be in normal mode (menu or an app on screen), not disk
 mode, and awake. mpremote interrupts whatever is running to read it,
 so afterwards this restarts the badge (a hard reset, like pressing
-RESET): it goes back to the menu, or to Mood Badger in kiosk mode.
+RESET): it goes back to the menu, or to Mood Badger in kiosk or
+start-in-app mode.
 --no-restart leaves it stopped, its screen frozen, until RESET.
 
     python3 -m tools.badge_info              # finds the badge
@@ -11,7 +12,7 @@ RESET): it goes back to the menu, or to Mood Badger in kiosk mode.
     python3 -m tools.badge_info --json       # machine-readable
 
 Reports the model (from badge.model), the MicroPython build and build
-date, whether Mood Badger is installed, whether kiosk mode is on, the
+date, whether Mood Badger is installed, what main.py starts, the
 saved mood, and the latest Badgeware release for that model with a
 verdict on whether the firmware is current. The firmware doesn't record
 its Pimoroni release number, so the verdict compares dates.
@@ -27,7 +28,16 @@ import sys
 import time
 
 from tools import badgeware_release as rel
-from tools.install import APP, is_kiosk
+from tools.install import APP, boot_mode
+
+# The "Start-up" row, for each install.boot_mode() result.
+START_UP_TEXT = {
+    "kiosk": "Mood Badger only (kiosk)",
+    "start-in-app": "Mood Badger, HOME opens the menu (start-in-app)",
+    "menu": "Pimoroni menu",
+    "custom": "custom main.py",
+    None: "unknown",
+}
 
 # Runs on the badge. badge.model is set from badgeware.badge.MODEL, so
 # read that (or the menu's own badge object, if it's still around). Only
@@ -118,7 +128,7 @@ def mpremote_command(port, restart=True):
     """The mpremote call that reads the badge. mpremote stops the running
     program to do it, which leaves the screen frozen on its last picture,
     so by default it ends with a hard reset (like pressing RESET) and the
-    badge restarts into the menu, or Mood Badger in kiosk mode."""
+    badge restarts into the menu, or Mood Badger in kiosk or start-in-app mode."""
     cmd = ["mpremote", "connect", port, "exec", DEVICE_SNIPPET]
     return cmd + ["reset"] if restart else cmd
 
@@ -141,12 +151,12 @@ def latest_for(model):
 
 
 def summarise(port, info, release):
-    """Add derived fields (build date, verdict, app, kiosk) to ``info``."""
+    """Add derived fields (build date, verdict, app, boot mode) to ``info``."""
     info["port"] = port
     info["build_date"] = rel.build_date(info["version"])
     apps = info.get("apps")
     info["app_installed"] = None if apps is None else APP in apps
-    info["kiosk"] = None if info.get("main_py") is None else is_kiosk(info["main_py"])
+    info["boot_mode"] = None if info.get("main_py") is None else boot_mode(info["main_py"])
     if release:
         info["latest_tag"] = release["tag_name"]
         info["latest_published"] = release.get("published_at", "")[:10]
@@ -158,7 +168,6 @@ def summarise(port, info, release):
 def report(info, why_not):
     model = info["model"]
     built = info["build_date"]
-    yes_no = {True: "yes", False: "no", None: "unknown"}
     lines = [
         ("Port", info["port"]),
         ("Model", "{}  (from {})".format(model, info["model_source"])),
@@ -166,7 +175,7 @@ def report(info, why_not):
         ("MicroPython", "{}  ({})".format(info["release"], info["version"])),
         ("Mood Badger", {True: "installed", False: "not installed", None: "unknown"}[
             info["app_installed"]]),
-        ("Kiosk mode", yes_no[info["kiosk"]]),
+        ("Start-up", START_UP_TEXT[info["boot_mode"]]),
         ("Saved mood", info.get("state") or "none"),
         ("Free space", "{} KB".format(info["free_kb"]) if info.get("free_kb") is not None
          else "unknown"),

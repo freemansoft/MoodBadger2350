@@ -1,12 +1,12 @@
 ---
 name: badge-deploy
-description: Copy the Mood Badger app (badger/mood_badger) onto a real Badger 2350 over USB disk mode, without touching the firmware - runs the project checks first, makes sure the badge's firmware is current, guides the user through double-tapping RESET, copies only the app's own files, verifies the copy and ejects. Also turns kiosk mode (Mood Badger as the only app) on or off. Use whenever the user wants to install, update, deploy, push, sync or try Mood Badger (or a changed config.json, mood image or label) on the physical badge, says the badge still shows the old version, or asks about kiosk mode on the device - even if they just say "put it on the badge". For flashing or checking firmware use badge-firmware.
+description: Copy the Mood Badger app (badger/mood_badger) onto a real Badger 2350 or Tufty 2350 over USB disk mode, without touching the firmware - runs the project checks first, makes sure the badge's firmware is current, guides the user through double-tapping RESET, copies only the app's own files, verifies the copy and ejects. Also sets what the badge starts up into: kiosk mode (Mood Badger as the only app), start-in-app mode (the normal Tufty setup: Mood Badger at start-up, HOME opens the menu) or the stock menu. Use whenever the user wants to install, update, deploy, push, sync or try Mood Badger (or a changed config.json, mood image or label) on the physical badge, says the badge still shows the old version, or asks about kiosk or start-in-app mode on the device - even if they just say "put it on the badge". For flashing or checking firmware use badge-firmware.
 ---
 
 # Deploying Mood Badger to a badge
 
 This updates **only** the app: `apps/mood_badger` on the badge's drive,
-plus `main.py` when the user asks for kiosk mode on or off. Firmware is
+plus `main.py` when the user asks to change what the badge starts up into. Firmware is
 the badge-firmware skill's job.
 
 Why disk mode, not `mpremote cp`: the badge mounts its user drive
@@ -56,17 +56,17 @@ python3 -m tools.badge_info
 ```
 
 It reports the model, whether the firmware looks current, whether Mood
-Badger is installed and whether kiosk mode is on. Note the kiosk state
-so you can tell the user if it changes. It restarts the badge when it
+Badger is installed and the "Start-up" mode (menu, kiosk,
+start-in-app or custom). Note it so you can tell the user if it changes. It restarts the badge when it
 has finished (the menu reappears after a couple of seconds), so the
 user doesn't need to press anything.
 
 - **Firmware OLDER than the latest release, or no build date:** stop
   and use the badge-firmware skill first, then come back.
-- **Model is not `badger`:** Mood Badger has no build for it yet (see
-  "Tufty 2350" below). Stop and say so.
+- **Model is neither `badger` nor `tufty`:** Mood Badger has no build
+  for it. Stop and say so.
 - **No badge found:** it may be asleep, already in disk mode (go to
-  step 3 if the `BADGER` drive is mounted), or on a charge-only cable.
+  step 3 if the `BADGER` or `TUFTY` drive is mounted), or on a charge-only cable.
   Start `python3 -m tools.badge_info --wait 180` in the background and
   ask the user to press RESET once.
 
@@ -106,21 +106,27 @@ folder at the drive's root (outside `apps/`, so the menu never lists
 it), compares every file with the source, then swaps it into
 `apps/mood_badger`. An interrupted copy leaves the old app in place. It
 leaves out `__pycache__` and `.pyc` files, deletes the `._` files
-macOS writes on FAT drives, prints the kiosk state, and ejects.
+macOS writes on FAT drives, prints `Start-up: <mode>`, and ejects.
 
-Leave `main.py` alone unless the user asked about kiosk mode:
+Leave `main.py` alone unless the user asked about the start-up mode,
+or this is a Tufty's first install (see "Tufty 2350" below):
+
+- `--start-in-app` (Tufty only; refused on a Badger): `kiosk/start_in_app.py`
+  replaces `main.py`. Power-on, RESET and USB plug-in open Mood Badger;
+  HOME opens Pimoroni's app list. It tells them apart by the restart
+  reason (`WAKE_WATCHDOG` after HOME), so nothing is saved.
 
 - `--kiosk` makes Mood Badger the only app: `kiosk/main.py` replaces
   `main.py`, so power-on, RESET, HOME and waking all start Mood Badger.
   Double-tap RESET still reaches disk mode, so this can't lock anyone
   out.
-- `--menu` brings the menu back by restoring the stock `main.py` from
-  `vendor/badger2350/firmware/main.py`. That file is from firmware
+- `--menu` brings the menu back by restoring that model's stock
+  `main.py` from `vendor/<model>2350/firmware/main.py`. That file is from firmware
   v3.1.1; if the badge runs a newer firmware, say that the stock file
   from that release is the safer one.
 
 Use `--dest /Volumes/<name>` if the drive has an unusual name, and
-`--model badger` if its name doesn't say which badge it is.
+`--model badger` or `--model tufty` if its name doesn't say which badge it is.
 
 If the copy check fails, run the command again. If it keeps failing,
 the drive may be full (badge_info's free space line) or the cable flaky.
@@ -129,29 +135,33 @@ the drive may be full (badge_info's free space line) or the cable flaky.
 
 Only after the script prints "Ejected", tell the user it's safe to
 touch the badge. It restarts into the menu by itself, or straight into
-Mood Badger in kiosk mode; if the disk mode screen is still up after
+Mood Badger in kiosk or start-in-app mode; if the disk mode screen is still up after
 10 seconds, they press RESET once. If the eject failed, have them eject
-`BADGER` from Finder before pressing anything. Ask them to open Mood Badger and check the change
+the drive from Finder before pressing anything. Ask them to open Mood Badger and check the change
 they made: the mood, label or image they edited, and that UP/DOWN
-and A/C still move between moods and sets. The e-ink takes a moment to
-refresh, so they should hold each button until the screen starts to
-change.
+and A/C still move between moods and sets. On a Badger the e-ink takes
+a moment to refresh, so they should hold each button until the screen
+starts to change. On a Tufty the first press on a dimmed screen only
+brightens it.
 
-Report what was copied (file count), the kiosk state, and anything the
+Report what was copied (file count), the start-up mode, and anything the
 user should look at by hand.
 
 ## Tufty 2350
 
 Badger vs Tufty differences: see the `badgeware-platforms` skill.
 
-`tools/install.py` maps each badge model to an app folder in `APPS`.
-Only `"badger"` is there today, so on a Tufty (drive `TUFTY` or
-`Tufty2350`, or `badge.model == "tufty"`) the tool copies nothing and
-says so. When a Tufty build of Mood Badger exists:
+The Tufty gets the same `badger/mood_badger` folder; the app checks
+`badge.model` itself. Its drive is `TUFTY`. The steps are the same, with
+these differences:
 
-1. Add `"tufty": ROOT / "<its folder>"` to `APPS`.
-2. Run the step 1 checks against that folder too.
-3. Check the Tufty's disk mode drive name on a real one and add it to
-   `DRIVE_MODELS` if it isn't there.
-4. `kiosk/main.py` launches `/system/apps/mood_badger`, so it works on
-   any model whose app folder has that name.
+- **Start-in-app is the normal Tufty setup.** The Tufty's stock
+  `main.py` always opens the app list, so without it the child has to
+  find Mood Badger in the list after every power-on. On a Tufty's first
+  install, offer `--start-in-app` unless the user wants the menu or
+  kiosk mode. HOME then opens the app list; RESET or power-on brings
+  Mood Badger back.
+- `badge_info` and `--menu` use the Tufty's own stock `main.py`
+  (`vendor/tufty2350/firmware/main.py`), never the Badger's.
+- The screen dims after 10 s; a press on a dim screen only brightens
+  it. Powering off is holding RESET until the case lights fade.

@@ -88,12 +88,48 @@ def test_device_snippet_is_valid_micropython_syntax():
     compile(badge_info.DEVICE_SNIPPET, "<badge>", "exec")
 
 
-@pytest.mark.parametrize("main_py,kiosk", [
-    ((ROOT / "kiosk" / "main.py").read_text(), True),
-    ((ROOT / "vendor" / "badger2350" / "firmware" / "main.py").read_text(), False),
+@pytest.mark.parametrize("path,mode", [
+    (ROOT / "kiosk" / "main.py", "kiosk"),
+    (ROOT / "kiosk" / "start_in_app.py", "start-in-app"),
+    (ROOT / "vendor" / "badger2350" / "firmware" / "main.py", "menu"),
+    (ROOT / "vendor" / "tufty2350" / "firmware" / "main.py", "menu"),
 ])
-def test_kiosk_is_detected_from_main_py(main_py, kiosk):
-    assert install.is_kiosk(main_py) is kiosk
+def test_boot_mode_of_each_known_file(path, mode):
+    assert install.boot_mode(path.read_text()) == mode
+
+
+def test_boot_mode_reports_custom_main_py():
+    assert install.boot_mode('print("hi")\n') == "custom"
+    edited = install.STOCK_MAINS["badger"].read_text() + "\nprint('mine')\n"
+    assert install.boot_mode(edited) == "custom"
+
+
+def test_boot_mode_ignores_trailing_whitespace_on_a_stock_file():
+    assert install.boot_mode(install.STOCK_MAINS["tufty"].read_text() + "\n\n") == "menu"
+
+
+def summary(main_py):
+    info = {"version": "v1.26.0 on 2025-11-20", "apps": ["menu", "mood_badger"], "main_py": main_py,
+            "model": "tufty", "model_source": "badge.model", "machine": "x", "release": "1.26"}
+    return badge_info.summarise("/dev/x", info, None)
+
+
+def test_badge_info_reports_the_start_up_mode(capsys):
+    info = summary((ROOT / "kiosk" / "start_in_app.py").read_text())
+    assert info["boot_mode"] == "start-in-app" and "kiosk" not in info
+    badge_info.report(info, "offline")
+    assert "Start-up:" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("mode,text", [
+    ("kiosk", "Mood Badger only (kiosk)"),
+    ("start-in-app", "Mood Badger, HOME opens the menu (start-in-app)"),
+    ("menu", "Pimoroni menu"),
+    ("custom", "custom main.py"),
+    (None, "unknown"),
+])
+def test_badge_info_start_up_text(mode, text):
+    assert badge_info.START_UP_TEXT[mode] == text
 
 
 # --- install -------------------------------------------------------------------
@@ -125,9 +161,29 @@ def test_model_comes_from_the_drive_label():
     assert install.model_for_drive(Path("/Volumes/USBSTICK")) is None
 
 
-def test_only_the_badger_has_an_app_build_so_far():
+def test_tufty_drive_installs_the_same_app():
     assert install.APPS["badger"] == ROOT / "badger" / "mood_badger"
-    assert "tufty" not in install.APPS
+    assert install.APPS["tufty"] == install.APPS["badger"]
+    assert install.model_for_drive(Path("/Volumes/TUFTY")) == "tufty"
+
+
+def test_menu_restores_the_stock_main_for_that_model(tmp_path):
+    badger, tufty = install.STOCK_MAINS["badger"], install.STOCK_MAINS["tufty"]
+    assert badger.read_text() != tufty.read_text()
+    root = fake_drive(tmp_path, "TUFTY")
+    install.set_main(root, tufty)
+    assert (root / "main.py").read_text() == tufty.read_text()
+
+
+def test_start_in_app_refused_on_a_badger(tmp_path, monkeypatch):
+    root = fake_drive(tmp_path)
+    monkeypatch.setattr("sys.argv", ["install", "--dest", str(root), "--model", "badger", "--start-in-app"])
+    with pytest.raises(SystemExit) as stop:
+        install.main()
+    assert str(stop.value) == ("Start-in-app mode is for the Tufty 2350; the Badger already returns "
+                               "to Mood Badger after a wake. Nothing copied.")
+    assert not (root / "apps" / "mood_badger").exists()
+    assert (root / "main.py").read_text() == "stock main"
 
 
 def test_install_copies_app_files_only(tmp_path):
@@ -162,10 +218,16 @@ def test_verify_copy_reports_missing_and_changed_files(tmp_path):
 def test_kiosk_install_and_restore(tmp_path):
     root = fake_drive(tmp_path)
     install.set_main(root, install.KIOSK_MAIN)
-    assert install.is_kiosk((root / "main.py").read_text())
-    install.set_main(root, install.STOCK_MAIN)
-    assert not install.is_kiosk((root / "main.py").read_text())
-    assert (root / "main.py").read_text() == install.STOCK_MAIN.read_text()
+    assert install.boot_mode((root / "main.py").read_text()) == "kiosk"
+    install.set_main(root, install.STOCK_MAINS["badger"])
+    assert install.boot_mode((root / "main.py").read_text()) == "menu"
+    assert (root / "main.py").read_text() == install.STOCK_MAINS["badger"].read_text()
+
+
+def test_start_in_app_install(tmp_path):
+    root = fake_drive(tmp_path, "TUFTY")
+    install.set_main(root, install.START_IN_APP_MAIN)
+    assert install.boot_mode((root / "main.py").read_text()) == "start-in-app"
 
 
 def test_looks_like_badge_needs_apps_and_main(tmp_path):

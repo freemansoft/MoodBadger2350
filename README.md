@@ -2,6 +2,8 @@
 
 Mood Badger is a visual communication aid for neurodivergent children. It turns a Pimoroni [Badger 2350](https://github.com/pimoroni/badger2350) e-ink badge into a mood display: the child presses a button to show how they feel, with a picture and a word, so they can share their emotional state without having to say it. The e-ink screen keeps showing the mood even while the badge is asleep.
 
+The same app also runs on the colour-screen [Tufty 2350](https://github.com/pimoroni/tufty2350), showing the same pictures larger. See [On a Tufty 2350](#on-a-tufty-2350).
+
 Mood Badger 2350 is a port of Simon Painter's [MoodBadger](https://github.com/simonpainter/MoodBadger) for the original Badger 2040, a project I was fortunate to contribute to.
 
 ![Mood Badger showing every mood and set in the simulator](docs/images/sim-tour.png)
@@ -35,8 +37,8 @@ The repository's `tools/` has three scripts for a badge on USB. Run them from th
 
 | Command | Badge mode | What it does |
 | --- | --- | --- |
-| `python3 -m tools.badge_info` | Normal (press **RESET** once) | Shows the model, whether the firmware is the latest release, whether Mood Badger is installed and whether kiosk mode is on. Interrupts the running app to read the badge, then restarts it |
-| `python3 -m tools.install --eject` | Disk (double-tap **RESET**) | Copies only the app's files, removes files the app no longer has, checks the copy and ejects. Add `--kiosk` or `--menu` to turn [kiosk mode](#make-it-the-only-app) on or off |
+| `python3 -m tools.badge_info` | Normal (press **RESET** once) | Shows the model, whether the firmware is the latest release, whether Mood Badger is installed and what the badge starts up into (the menu, kiosk or start-in-app). Interrupts the running app to read the badge, then restarts it |
+| `python3 -m tools.install --eject` | Disk (double-tap **RESET**) | Copies only the app's files, removes files the app no longer has, checks the copy and ejects. Add `--kiosk` or `--menu` to turn [kiosk mode](#make-it-the-only-app) on or off, or on a Tufty `--start-in-app` ([start-in-app mode](#on-a-tufty-2350)) |
 | `python3 -m tools.flash_firmware --model badger --firmware-only` | Bootloader (hold **BOOT**, tap **RESET**, let go of **BOOT**) | Downloads the latest firmware and flashes it, keeping apps and files. `--with-filesystem` instead resets every app and file to Pimoroni's defaults |
 
 Each takes `--wait SECONDS`, which keeps looking for the badge that long, so you can start the command and then press the buttons.
@@ -66,6 +68,26 @@ cp -X vendor/badger2350/firmware/main.py /Volumes/BADGER/main.py
 ```
 
 That file is from firmware v3.1.1; if your badge runs a newer firmware, take `main.py` from that release instead. Updating the firmware may also replace `main.py`. If the menu comes back after an update, copy `kiosk/main.py` over again.
+
+## On a Tufty 2350
+
+Install exactly as for the Badger: the drive is called `TUFTY`, and the same `badger/mood_badger` folder goes in its `apps` folder. You need Tufty firmware **v3.1.1** or later ([releases](https://github.com/pimoroni/tufty2350/releases/latest)).
+
+The Tufty's screen is lit, so Mood Badger dims it after 10 seconds without a press (to about half on USB, about 15% on battery) and never turns it off. A press on a dimmed screen only brightens it; the next press changes the mood. The Tufty doesn't switch itself off: hold **RESET** until the case lights fade, and press any front button to turn it on again.
+
+A Tufty always opens Pimoroni's app list when it starts, so the normal setup is **start-in-app mode**: Mood Badger opens on power-on and RESET, and **HOME** still opens the app list. With the badge in disk mode:
+
+```sh
+python3 -m tools.install --start-in-app --eject
+```
+
+This replaces `main.py` with [`kiosk/start_in_app.py`](kiosk/start_in_app.py), which tells a HOME restart from any other start by the firmware's restart reason. To undo it, run `python3 -m tools.install --menu --eject`, or copy the Tufty's stock file back:
+
+```sh
+cp -X vendor/tufty2350/firmware/main.py /Volumes/TUFTY/main.py
+```
+
+Kiosk mode (`--kiosk`, [above](#make-it-the-only-app)) works on a Tufty too, if the app list should never be shown.
 
 ## Controls
 

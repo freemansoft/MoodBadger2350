@@ -57,7 +57,8 @@ RESET once.
 It picks the badge out of `mpremote devs` (other boards, such as a
 Particle board or Bluetooth ports, are ignored; with two badges it asks
 for `--port`) and prints the model, MicroPython build and build date,
-whether Mood Badger is installed, whether kiosk mode is on, the saved
+whether Mood Badger is installed, the start-up mode (menu, kiosk,
+start-in-app or custom), the saved
 mood, free space, and the latest release with a verdict.
 
 - **The verdict compares dates, not version numbers.** The firmware
@@ -170,15 +171,16 @@ verdict.
 
 ### 5. Afterwards
 
-- **After `--with-filesystem`**, Mood Badger is gone and kiosk mode is
-  off. Offer to reinstall it with the badge-deploy skill (with
-  `--kiosk` if it was a kiosk badge before; badge_info's step 1 output
-  says so).
+- **After `--with-filesystem`**, Mood Badger is gone and `main.py` is
+  the stock one, so kiosk and start-in-app mode are off. Offer to
+  reinstall it with the badge-deploy skill (with `--kiosk` or
+  `--start-in-app` if the step 1 "Start-up" line said so).
 - **If the release is newer than the pinned `v3.1.1`**, say so. Moving
   the project to it is a separate change, not part of flashing:
-  bumping the `vendor/badger2350` submodule, the "v3.1.1" mentions in
-  `README.md`, `badger/mood_badger/README.md`, `CLAUDE.md`, and
-  `tools/install.py`'s `STOCK_MAIN` note, then the test suite and the
+  bumping the `vendor/badger2350` or `vendor/tufty2350` submodule, the
+  "v3.1.1" mentions in `README.md`, `badger/mood_badger/README.md`,
+  `CLAUDE.md`, and `tools/install.py`'s `STOCK_MAINS` note, re-checking
+  the `badgeware-platforms` skill's table, then the test suite and the
   simulator. Offer it; don't do it unasked.
 - Report: model, firmware before and after (build dates), which image
   was flashed, and anything the user should check by hand on the badge.
@@ -189,10 +191,11 @@ Badger vs Tufty differences: see the `badgeware-platforms` skill.
 
 The tools already handle the Tufty: `badge_info` reads `badge.model`
 as `"tufty"`, and `flash_firmware --model tufty` fetches from
-`pimoroni/tufty2350`. The button procedure is the same. Two things to
+`pimoroni/tufty2350`. The button procedure is the same. Things to
 note when working with one:
 
-- Mood Badger has no Tufty build yet, so after flashing a Tufty there
-  is nothing of ours to install. badge-deploy will say so.
+- After flashing a Tufty, offer the badge-deploy skill with
+  `--start-in-app` (the normal Tufty setup) if Mood Badger isn't on it,
+  or if `--with-filesystem` just reset its `main.py`.
 - Tufty releases include pre-releases such as the Badgeware IDE preview
   (`v4.0.0-ide.1`). "Latest" skips them; flash one only on request.
