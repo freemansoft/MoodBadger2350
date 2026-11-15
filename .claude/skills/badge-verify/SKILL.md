@@ -108,17 +108,17 @@ installs, and CLAUDE.md's rule for button presses (a background
 - **Two badges plugged in:** the tools ask for `--port`; `mpremote devs`
   names each one (`Badger 2350`, `Tufty 2350`). A badge on battery sleeps
   and drops off USB: ask the user to plug it in and press RESET.
-- **Every mpremote read ends with `machine.reset()`**, the restart HOME
-  makes. A Tufty in start-in-app mode then shows the app list, which is
-  expected; RESET brings Mood Badger back. Don't read the badge while the
-  user is checking what the screen shows: ask first, then read.
+- **Every mpremote read ends with `machine.reset()`.** A Badger then
+  reopens the app it was showing; a Tufty (stock or start-in-app) shows
+  the menu, which is expected, and RESET brings Mood Badger back on a
+  start-in-app Tufty. Don't read the badge while the user is checking
+  what the screen shows: ask first, then read.
 
 Steps:
 
 1. `python3 -m tools.badge_info`: model, firmware current, start-up mode.
-2. Install: `python3 -m tools.install --wait 180 --eject` (add
-   `--start-in-app` on a Tufty), then double-tap RESET. Expect `Start-up:`
-   as intended and "Ejected".
+2. Install with the `badge-deploy` skill (it has the hands-off
+   instructions). Expect `Start-up:` as intended and "Ejected".
 3. Check the copy from the badge's side (macOS can hold writes until the
    eject, so the mounted drive can look right when the badge isn't):
    `python3 -m tools.badge_check files`.
@@ -142,10 +142,13 @@ Steps:
 5. A press while dimmed only brightens; the next press changes the mood.
 6. Dim again, unplug USB: drops to about 15% without a press; the mood
    is still readable in room light.
-7. HOME opens the app list; then RESET opens Mood Badger.
-8. Mood Badger opens from the app list.
-9. Hold RESET until the case lights fade (off), then a front button:
-   Mood Badger with the same mood; that press doesn't change it.
+7. HOME opens the menu.
+8. Choose Mood Badger in the menu: it opens.
+9. HOME, then RESET: Mood Badger opens, not the menu.
+10. Hold RESET until the case lights fade (off), then a front button:
+    Mood Badger with the same mood; that press doesn't change it.
+11. After a firmware flash only: note what it opens, and record it in
+    `badgeware-platforms` (not yet seen).
 
 ### Badger 2350 checklist
 
@@ -153,6 +156,12 @@ Steps:
 2. UP/DOWN and A/C work (hold each until the e-ink starts to change).
 3. Unplug USB, wait ~5 s to sleep, press DOWN: wakes **and** moves one mood.
 4. HOME goes to the menu.
+5. RESET opens the menu.
+6. With Mood Badger showing, after an install or a `badge_check` run:
+   note what the badge shows (the source says Mood Badger; not yet
+   seen) and record it in `badgeware-platforms`.
+7. If `kiosk/main.py` changed and the badge is in kiosk mode: RESET and
+   HOME both open Mood Badger.
 
 ## Reporting
 

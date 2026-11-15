@@ -2,3 +2,4 @@ pillow
 pytest
 mpy-cross
 ruff
+mpremote

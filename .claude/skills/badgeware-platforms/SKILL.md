@@ -27,10 +27,12 @@ submodule**.
 | `wait_for_button_or_alarm` | defined; deep-sleeps after its timeout on battery | not defined | `vendor/badger2350/modules/common/badgeware/__init__.py` |
 | Stock `main.py` | reopens the last app (`state["running"]`) unless it is gone or the wake reason is `WAKE_RESET` | always opens the menu; eats the waking press first with `badge.poll()` | `vendor/badger2350/firmware/main.py`, `vendor/tufty2350/firmware/main.py` |
 | Menu | remembers the selected app | starts at the first app (`active = 0`), apps alphabetical, 6 per page | `vendor/tufty2350/firmware/apps/menu/__init__.py` |
-| HOME | `do_exit()` (the app's `on_exit`), then `reset()` | same, but HOME is also BOOT, so `reset()` waits for HOME to be released, then `machine.reset()` (a watchdog reboot) | `vendor/tufty2350/modules/common/badgeware/__init__.py` (`launch`, `reset`) |
-| Restart reason | `powman.get_wake_reason()` | same codes: HOME gives `WAKE_WATCHDOG` (0xf2), RESET `WAKE_RESET` (0xf1), a front button `WAKE_BUTTON_*`, USB plug-in `WAKE_VBUS_DETECT` | `vendor/tufty2350/modules/c/powman/bindings.c`, `vendor/badger2350/modules/c/powman/bindings.c` |
+| HOME | `do_exit()` (the app's `on_exit`), then `clear_running()`, which makes the menu the app to reopen, then `reset()` | `do_exit()`, then `reset()`; there is no `clear_running()` | `vendor/badger2350/modules/common/badgeware/__init__.py`, `vendor/tufty2350/modules/common/badgeware/__init__.py` (`launch`, `quit_to_launcher`) |
+| `reset()` | HOME is also BOOT on both, so it waits for HOME to be released, then `machine.reset()` (a watchdog reboot) | same | same files (`reset`) |
+| Any other `machine.reset()` (`mpremote ... reset`, the badge tools, probably the restart after a disk-mode eject) | reopens the last app, because nothing changed `state["running"]` | the stock `main.py` opens the menu; `kiosk/start_in_app.py` also opens the menu (it sees `WAKE_WATCHDOG`, as after HOME) | `vendor/badger2350/firmware/main.py`, `kiosk/start_in_app.py` |
+| Restart reason | `powman.get_wake_reason()` | same codes: HOME and any `machine.reset()` give `WAKE_WATCHDOG` 0xf2 (242), RESET `WAKE_RESET` 0xf1 (241), double-tap `WAKE_DOUBLETAP` 5, a front button `WAKE_BUTTON_*`, USB plug-in `WAKE_VBUS_DETECT` | `vendor/tufty2350/modules/c/powman/bindings.c`, `vendor/badger2350/modules/c/powman/bindings.c` |
 | Double-tap RESET | disk mode | disk mode, handled before `main.py` runs | `vendor/tufty2350/modules/common/main.py` |
-| Hold RESET | - | case lights fade, then power off; a front button turns it on | `vendor/tufty2350/modules/c/powman/powman.c` (`handle_long_press`) |
+| Hold RESET | the same power-off code is in the source; not tried | case lights fade, then power off; a front button turns it on | `vendor/badger2350/modules/c/powman/powman.c`, `vendor/tufty2350/modules/c/powman/powman.c` (`handle_long_press`) |
 | Waking button press | reaches the first `badge.poll()` | same; `run()` polls before the first `update()`, so the app sees it as pressed | `vendor/tufty2350/modules/c/input/input.cpp` |
 | Disk-mode drive | `BADGER` | `TUFTY` | `vendor/badger2350/board/mpconfigboard.cmake`, `vendor/tufty2350/board/mpconfigboard.cmake` (`PIMORONI_FATFS_LABEL`) |
 | `State`, filesystem helpers | same | same | `vendor/tufty2350/modules/common/badgeware/state.py`, `vendor/tufty2350/modules/common/badgeware/filesystem.py` |
@@ -78,16 +80,33 @@ submodule**.
   `--start-in-app` is refused on a Badger (its stock `main.py` already
   returns to the last app).
 
-Confirmed on a Tufty at v3.1.1 (2026-11-15): a single RESET reports
-`WAKE_RESET` (241), `machine.reset()` (HOME, `mpremote ... reset`,
-`tools.badge_info`) `WAKE_WATCHDOG` (242), and a double-tap
-`WAKE_DOUBLETAP` (5). The restart after ejecting the disk-mode drive
-is also `WAKE_WATCHDOG`. So anything that calls `machine.reset()`, and
-every install, lands a start-in-app Tufty on the menu, not only HOME;
-RESET brings Mood Badger back.
+## Confirmed on hardware
 
-Checked by hand on that Tufty: RESET and power-on (hold RESET, then a
-front button) open Mood Badger; RESET after HOME opens Mood Badger, so
-the watchdog flag doesn't stick; the waking press doesn't change the
-mood; dimming to 0.5 on USB and 0.15 on battery, both still readable;
-the `TUFTY` layout's arrows sit above A and C.
+The table comes from the firmware source. These were seen on real badges
+at v3.1.1 (2026-11-15); other docs (the README's start-up table, the
+`badge-verify` checklists) point here, so update this list when a badge
+shows something new.
+
+Tufty 2350:
+
+- A single RESET reports `WAKE_RESET` (241), `machine.reset()` (HOME,
+  `mpremote ... reset`, the badge tools) `WAKE_WATCHDOG` (242), a
+  double-tap `WAKE_DOUBLETAP` (5). The restart after ejecting the
+  disk-mode drive is also `WAKE_WATCHDOG`, so every install and every
+  badge-tool run lands a start-in-app Tufty on the menu; RESET brings
+  Mood Badger back.
+- In start-in-app mode, RESET and power-on (hold RESET until the case
+  lights fade, then a front button) open Mood Badger. RESET after HOME
+  opens Mood Badger, so the watchdog flag doesn't stick.
+- The waking press doesn't change the mood. The backlight dims to 0.5 on
+  USB and 0.15 on battery, both readable. The arrows sit above A and C.
+
+Badger 2350:
+
+- Waking from sleep with DOWN reopens Mood Badger and moves one mood.
+  HOME opens the menu. The layout is unchanged by the Tufty work.
+
+Not seen yet: what a Badger shows after `machine.reset()` or an install
+(the source says the last app), kiosk mode on a Tufty, what a
+start-in-app Tufty opens after a firmware flash, and holding RESET on a
+Badger.

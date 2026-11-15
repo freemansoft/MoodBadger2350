@@ -1,5 +1,5 @@
 # Start-in-app boot file for a Tufty 2350: opens Mood Badger on power-on,
-# RESET, waking and USB plug-in, but the app list when the restart came
+# RESET, waking and USB plug-in, but the menu when the restart came
 # from HOME.
 #
 # Copy this file over main.py at the root of the badge's drive (disk mode),

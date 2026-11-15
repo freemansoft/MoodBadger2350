@@ -2,10 +2,10 @@
 
 The badge must be in normal mode (menu or an app on screen), not disk
 mode, and awake. mpremote interrupts whatever is running to read it,
-so afterwards this restarts the badge with machine.reset(): it goes back
-to the menu, or to Mood Badger in kiosk mode. A Tufty in start-in-app
-mode also goes to the menu, because machine.reset() is the restart HOME
-makes; press RESET once to get Mood Badger back.
+so afterwards this restarts the badge with machine.reset(). A Badger
+reopens the app it was showing, kiosk mode opens Mood Badger, and a
+Tufty (stock or start-in-app) opens the menu; on a start-in-app Tufty,
+press RESET once to get Mood Badger back.
 --no-restart leaves it stopped, its screen frozen, until RESET.
 
     python3 -m tools.badge_info              # finds the badge
@@ -128,9 +128,9 @@ def parse_info(output):
 def mpremote_command(port, restart=True):
     """The mpremote call that reads the badge. mpremote stops the running
     program to do it, which leaves the screen frozen on its last picture,
-    so by default it ends with machine.reset() and the badge restarts into
-    the menu, or Mood Badger in kiosk mode. That is the same restart as HOME,
-    so a start-in-app Tufty opens the menu; RESET brings Mood Badger back."""
+    so by default it ends with machine.reset(). A Badger then reopens the
+    app it was showing; a Tufty, even in start-in-app mode, opens the menu
+    (RESET brings Mood Badger back)."""
     cmd = ["mpremote", "connect", port, "exec", DEVICE_SNIPPET]
     return cmd + ["reset"] if restart else cmd
 

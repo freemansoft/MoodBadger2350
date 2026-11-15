@@ -10,8 +10,9 @@ Every release has two images; choose one every time:
                      saved mood stay. Right for a badge already in use.
   --with-filesystem  ALSO resets the badge's drive to Pimoroni's
                      defaults: every app, Mood Badger included, and
-                     main.py (so kiosk mode is undone). Good for a new
-                     badge, so its default apps match the firmware.
+                     main.py (so kiosk and start-in-app mode are
+                     undone). Good for a new badge, so its default
+                     apps match the firmware.
 
 Then put the badge in bootloader mode: hold BOOT, tap RESET, let go of
 BOOT. A drive named RP2350 appears. Run:
@@ -21,7 +22,7 @@ BOOT. A drive named RP2350 appears. Run:
     python3 -m tools.flash_firmware --model tufty --firmware-only --tag v3.1.1
     python3 -m tools.flash_firmware --model badger --firmware-only --download-only
 
-The badge restarts into the menu when the copy finishes. Standard
+The badge restarts by itself when the copy finishes. Standard
 library only; works on macOS, Windows and Linux.
 
 Adapted from claude-buddy-badgeware's tools/flash_firmware.py.
@@ -93,7 +94,7 @@ def confirm_wipe(model, yes):
     print(
         "\n--with-filesystem resets the badge's drive to Pimoroni's defaults.\n"
         "Mood Badger and any other added apps are removed, and main.py is\n"
-        "replaced (kiosk mode is undone). Use --firmware-only to keep them.")
+        "replaced (kiosk and start-in-app mode are undone). Use --firmware-only to keep them.")
     if yes:
         return
     answer = input("Type the model name ({}) to go ahead: ".format(model)).strip().lower()

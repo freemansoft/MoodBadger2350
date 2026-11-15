@@ -15,7 +15,8 @@ badge. As CLAUDE.md says, start each tool with `--wait 180` in the
 background and end your turn with exactly what to press and what they
 should see. If it timed out, ask what the badge's screen shows.
 
-The tools are standard-library Python, run from the repository root:
+The tools are standard-library Python plus `mpremote` (in
+`requirements-dev.txt`), run from the repository root:
 `tools/badge_info.py`, `tools/flash_firmware.py` (helpers in
 `tools/badgeware_release.py`). Run them as modules
 (`python3 -m tools.badge_info`), because they import each other from
@@ -67,11 +68,11 @@ mood, free space, and the latest release with a verdict.
   `badge.model` is set from, so it's just as good. Only
   `os.uname().machine` is a warning sign (below).
 - **It interrupts whatever was running, then restarts the badge**
-  with `machine.reset()`, so it's back on the menu a couple of seconds
-  later without a button press. A Tufty in start-in-app mode comes back
-  on the app list (the restart HOME makes); RESET brings Mood Badger
-  back. Don't run it while the user is in the middle of using Mood
-  Badger.
+  with `machine.reset()` a couple of seconds later, without a button
+  press. A Badger reopens the app it was showing; a Tufty (stock or
+  start-in-app) opens the menu, and RESET brings Mood Badger back on a
+  start-in-app Tufty. Don't run it while the user is in the middle of
+  using Mood Badger.
 - `model_source` of `os.uname().machine` means Badgeware didn't load:
   the firmware is damaged or not Badgeware. Reflash, and suggest
   `--with-filesystem` (step 2).
@@ -93,7 +94,7 @@ Every release has two images, and `flash_firmware.py` refuses to guess:
   saved mood stay. **The right choice for a badge already in use.**
 - `--with-filesystem` also resets the badge's drive to Pimoroni's
   defaults: Mood Badger and any added apps are removed, and `main.py`
-  is replaced, so **kiosk mode is undone**. The saved mood lives in
+  is replaced, so **kiosk and start-in-app mode are undone**. The saved mood lives in
   `/state` on a separate internal partition and probably survives, but
   don't promise it. Good for a new badge or a damaged filesystem,
   because the default apps then match the firmware.
@@ -138,9 +139,9 @@ the chat that wiping the badge is fine, pass `--yes` with it.
 The script downloads the UF2 from `pimoroni/<model>2350` releases
 (cached in the system temp folder), checks it is a complete UF2 file,
 and copies it to the `RP2350` drive. The badge restarts by itself after
-a few seconds, normally onto the menu. What a Tufty in start-in-app
-mode opens after a flash hasn't been checked; if it's the app list,
-RESET brings Mood Badger back. `--tag vX.Y.Z` picks a particular
+a few seconds. What it opens then hasn't been checked on either badge
+(it depends on the restart reason; see `badgeware-platforms`); on a
+start-in-app Tufty, RESET brings Mood Badger back if it shows the menu. `--tag vX.Y.Z` picks a particular
 release; `--download-only` fetches without flashing. Pre-releases (for
 example `v4.0.0-ide.1`) are skipped by "latest"; use one only if the
 user asks for it by tag.
@@ -176,11 +177,11 @@ verdict.
   `--start-in-app` if the step 1 "Start-up" line said so).
 - **If the release is newer than the pinned `v3.1.1`**, say so. Moving
   the project to it is a separate change, not part of flashing:
-  bumping the `vendor/badger2350` or `vendor/tufty2350` submodule, the
-  "v3.1.1" mentions in `README.md`, `badger/mood_badger/README.md`,
-  `CLAUDE.md`, and `tools/install.py`'s `STOCK_MAINS` note, re-checking
-  the `badgeware-platforms` skill's table, then the test suite and the
-  simulator. Offer it; don't do it unasked.
+  bumping the `vendor/badger2350` or `vendor/tufty2350` submodule,
+  updating every "3.1.1" mention (find them with
+  `grep -rn "3\.1\.1" --exclude-dir=vendor --exclude-dir=.venv --exclude-dir=docs .`),
+  re-checking the `badgeware-platforms` skill's table, then the test
+  suite and the simulator. Offer it; don't do it unasked.
 - Report: model, firmware before and after (build dates), which image
   was flashed, and anything the user should check by hand on the badge.
 

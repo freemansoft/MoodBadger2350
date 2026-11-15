@@ -56,7 +56,7 @@ def test_wake_name(reason, name):
 
 @pytest.mark.parametrize("reason,meaning", [
     ("WAKE_RESET", "Mood Badger"), ("WAKE_BUTTON_DOWN", "Mood Badger"),
-    ("WAKE_WATCHDOG", "the app list"), ("WAKE_DOUBLETAP", "disk mode")])
+    ("WAKE_WATCHDOG", "the menu"), ("WAKE_DOUBLETAP", "disk mode")])
 def test_start_in_app_meaning(reason, meaning):
     assert meaning in badge_check.start_in_app_meaning(reason)
 

@@ -10,7 +10,9 @@ Requires Badger 2350 or Tufty 2350 firmware **v3.1.1** or later. The same app fo
 - **A** / **C**: previous / next mood set (the ◀ ▶ arrows in the bottom corners; hidden, and the buttons do nothing, with only one set)
 - **HOME**: back to the menu
 
-Hold a button until the screen starts to change; a quick tap during a refresh can be missed. On battery the badge sleeps after 5 seconds, and any front button wakes it and moves straight to the next mood.
+## On a Badger 2350
+
+Hold a button until the screen starts to change; a quick tap during a refresh can be missed. On battery the badge sleeps after 5 seconds, and the e-ink keeps showing the mood. Any front button wakes it, and that press counts: DOWN wakes it and moves to the next mood.
 
 ## On a Tufty 2350
 
@@ -18,7 +20,7 @@ The buttons are the same. The screen is at full brightness after any press and d
 
 The Tufty doesn't switch itself off. To turn it off, hold RESET on the back until the case lights fade; any front button turns it on again.
 
-To have it open Mood Badger when it is turned on or reset, with HOME still opening the app list, install with `python3 -m tools.install --start-in-app` (see the main README).
+To have it open Mood Badger when it is turned on or reset, with HOME still opening the menu, install with `python3 -m tools.install --start-in-app --eject` (see the main README).
 
 ## Changing the moods
 

@@ -15,9 +15,9 @@ first waits for the badge to drop off USB and come back (press RESET, or
 HOME, while it waits), so the reading is from that restart.
 
 The badge must be in normal mode (menu or an app on screen). Both checks
-stop the running app and end with machine.reset(), the restart HOME makes:
-the badge comes back on the menu, also a Tufty in start-in-app mode
-(RESET brings Mood Badger back).
+stop the running app and end with machine.reset(): a Badger reopens the
+app it was showing, and a Tufty (stock or start-in-app) opens the menu
+(RESET brings Mood Badger back on a start-in-app Tufty).
 
 Needs mpremote (pip install mpremote). Standard library otherwise.
 """
@@ -102,7 +102,7 @@ def wake_name(reason, names):
 def start_in_app_meaning(name):
     """What kiosk/start_in_app.py does after a restart with this reason."""
     if name == "WAKE_WATCHDOG":
-        return "start-in-app opens the app list (HOME, machine.reset(), or an eject)"
+        return "start-in-app opens the menu (HOME, machine.reset(), or an eject)"
     if name == "WAKE_DOUBLETAP":
         return "disk mode; main.py doesn't run"
     return "start-in-app opens Mood Badger"
