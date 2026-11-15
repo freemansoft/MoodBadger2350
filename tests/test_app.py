@@ -156,3 +156,9 @@ def test_set_buttons_do_not_refresh_with_a_single_set(button):
     r = run_app([set(), {button}], saved={"set": 0, "mood": 1}, config_text=config)
     assert r.events.count("display") == 1
     assert r.saved is None
+
+
+def test_badger_on_exit_does_nothing():
+    r = run_app([set()])
+    r.exit()
+    assert r.backlight == []

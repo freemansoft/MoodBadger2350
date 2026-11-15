@@ -2,6 +2,12 @@
 
 run_app() copies the app to a temp directory (as launch() would chdir into it),
 injects fakes as globals, and runs __init__.py with one update() per tick.
+
+model="badger" (the default) fakes the Badger 2350's builtins. model="tufty"
+fakes the Tufty 2350's instead: its run() clears the screen before and
+refreshes the display after every update(), its badge has a backlight, and
+the Badger-only names (NON_BLOCKING, wait_for_button_or_alarm,
+badge.first_update) don't exist, so touching them fails the run.
 """
 
 import os
@@ -16,6 +22,8 @@ BUTTON_A, BUTTON_B, BUTTON_C = "A", "B", "C"
 BUTTON_UP, BUTTON_DOWN, BUTTON_HOME = "UP", "DOWN", "HOME"
 MEDIUM_UPDATE = 2 << 4
 NON_BLOCKING = 1 << 9
+HIRES = 0b01
+VSYNC = 0b10
 
 # Pixels per character, so tests can push labels past the width limit.
 CHAR_WIDTH = {"ignore": 12, "ziplock": 9, "smart": 7, "winds": 5}
@@ -38,6 +46,10 @@ class Result:
         self.mode = None
         self.fatal = None
         self.early_calls = []
+        self.backlight = []
+        self.blit_rects = []
+        self.loads = 0
+        self.exit = None
 
 
 class _Font:
@@ -81,8 +93,11 @@ class _Image:
 
 
 class _ImageModule:
-    @staticmethod
-    def load(path):
+    def __init__(self, result):
+        self._r = result
+
+    def load(self, path):
+        self._r.loads += 1
         if not os.path.exists(path):
             raise OSError(path)
         with open(path, "rb") as f:
@@ -104,6 +119,7 @@ class _Screen:
     def blit(self, img, pos):
         self._r.events.append("blit")
         self._r.blits.append(img.path)
+        self._r.blit_rects.append(tuple(pos))
 
     def text(self, text, x, y):
         self._r.events.append("text")
@@ -119,11 +135,24 @@ class _Screen:
             self._r.arrows.append(s.points)
 
 
-class _Badge:
-    def __init__(self, result, update_polls):
+class _Display:
+    def __init__(self, result):
         self._r = result
+
+    def backlight(self, value):
+        self._r.backlight.append(value)
+
+
+class _Badge:
+    def __init__(self, result, update_polls, model="badger", usb=True):
+        self._r = result
+        self.model = model
         self.running = False
-        self.first_update = True
+        if model == "badger":
+            self.first_update = True
+        self.ticks = 0
+        self.frame = 0
+        self._usb = usb
         self.current = set()
         # Button sets seen by the poll at the end of each badge.update(). A press
         # caught there survives into the next update() unless a wait polls again.
@@ -152,10 +181,23 @@ class _Badge:
     def mode(self, value=None):
         self._r.mode = value
 
+    def usb_connected(self):
+        if isinstance(self._usb, (list, tuple)):
+            return self._usb[min(self.frame, len(self._usb) - 1)]
+        return self._usb
 
-def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=(), files_corrupt=()):
+    def sleep(self):
+        self._r.events.append("sleep")
+
+
+def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=(), files_corrupt=(),
+            model="badger", usb=True, frame_ms=1000):
+    """Run the app for one update() per entry in ticks (a set of buttons
+    pressed that frame). usb is the power source, or a list with one value
+    per tick; on the Tufty, badge.ticks advances frame_ms per tick."""
     result = Result()
-    badge = _Badge(result, update_polls)
+    badge = _Badge(result, update_polls, model, usb)
+    screen = _Screen(result)
 
     class State:
         @staticmethod
@@ -183,6 +225,16 @@ def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=
                 badge.current = set(pending.pop(0))
             update()
 
+    def run_tufty(update):
+        # Like the Tufty's _run: clear, update(), display.update(), poll.
+        badge.running = True
+        for i, buttons in enumerate(ticks):
+            badge.frame, badge.ticks = i, i * frame_ms
+            badge.current = set(buttons)
+            screen.clear()
+            update()
+            result.events.append("display")
+
     def wait_for_button_or_alarm(timeout=30_000):
         # Its first poll replaces whatever badge.update() last saw.
         badge.carried = False
@@ -197,14 +249,19 @@ def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=
         return os.path.exists(path)
 
     fakes = {
-        "screen": _Screen(result), "badge": badge, "image": _ImageModule(),
+        "screen": screen, "badge": badge, "image": _ImageModule(result),
         "color": _Colors(), "font": _Fonts(), "shape": _Shapes(),
-        "vec2": lambda x, y: (x, y), "State": State, "run": run,
-        "file_exists": file_exists, "wait_for_button_or_alarm": wait_for_button_or_alarm,
-        "fatal_error": fatal_error, "MEDIUM_UPDATE": MEDIUM_UPDATE, "NON_BLOCKING": NON_BLOCKING,
+        "vec2": lambda x, y: (x, y), "State": State,
+        "file_exists": file_exists, "fatal_error": fatal_error, "MEDIUM_UPDATE": MEDIUM_UPDATE,
         "BUTTON_A": BUTTON_A, "BUTTON_B": BUTTON_B, "BUTTON_C": BUTTON_C,
         "BUTTON_UP": BUTTON_UP, "BUTTON_DOWN": BUTTON_DOWN, "BUTTON_HOME": BUTTON_HOME,
     }
+    if model == "badger":
+        fakes.update({"run": run, "wait_for_button_or_alarm": wait_for_button_or_alarm,
+                      "NON_BLOCKING": NON_BLOCKING})
+    else:
+        fakes.update({"run": run_tufty, "display": _Display(result), "HIRES": HIRES, "VSYNC": VSYNC,
+                      "rect": lambda x, y, w, h: (x, y, w, h)})
 
     previous = os.getcwd()
     with tempfile.TemporaryDirectory() as tmp:
@@ -218,7 +275,8 @@ def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=
             (app / name).write_bytes(b"\xff\xd8\xff\xe0 a JPEG renamed to .png")
         os.chdir(app)
         try:
-            runpy.run_path("__init__.py", init_globals=fakes)
+            app_globals = runpy.run_path("__init__.py", init_globals=fakes)
+            result.exit = app_globals.get("on_exit")
         except _Stop:
             pass
         finally:
