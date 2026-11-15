@@ -22,7 +22,9 @@ with the button instructions, so the user doesn't have to come back and
 type "done". If it timed out, ask what the badge's screen shows.
 
 Run the tools from the repository root as modules
-(`python3 -m tools.install`); they are standard-library Python.
+(`python3 -m tools.install`). They are standard-library Python;
+`badge_info` and `badge_check` also need `mpremote` (in
+`requirements-dev.txt`).
 
 ## Steps
 
@@ -58,10 +60,11 @@ python3 -m tools.badge_info
 It reports the model, whether the firmware looks current, whether Mood
 Badger is installed and the "Start-up" mode (menu, kiosk,
 start-in-app or custom). Note it so you can tell the user if it changes. It restarts the badge when it
-has finished, onto the menu, or Mood Badger in kiosk mode. A Tufty in
-start-in-app mode also comes back on the app list (this restart is the
-one HOME makes; see `badgeware-platforms`): tell the user that's
-expected and RESET brings Mood Badger back.
+has finished with `machine.reset()`: a Badger reopens the app it was
+showing, a badge in kiosk mode opens Mood Badger, and a Tufty (stock or
+start-in-app) opens the menu (see `badgeware-platforms`). On a
+start-in-app Tufty, tell the user that's expected and RESET brings Mood
+Badger back.
 
 - **Firmware OLDER than the latest release, or no build date:** stop
   and use the badge-firmware skill first, then come back.
@@ -76,7 +79,7 @@ If the badge is already in disk mode, the firmware can't be read. Say
 so, and continue only if the user confirms the firmware is current or
 was checked earlier in this session.
 
-### 3 and 4. Disk mode, then copy
+### 3. Disk mode and copy
 
 Start the install in the background; it waits for the drive:
 
@@ -115,11 +118,11 @@ or this is a Tufty's first install (see "Tufty 2350" below):
 
 - `--start-in-app` (Tufty only; refused on a Badger): `kiosk/start_in_app.py`
   replaces `main.py`. Power-on, RESET and USB plug-in open Mood Badger;
-  HOME opens Pimoroni's app list. It tells them apart by the restart
+  HOME opens Pimoroni's menu. It tells them apart by the restart
   reason (`WAKE_WATCHDOG` after HOME), so nothing is saved.
-
 - `--kiosk` makes Mood Badger the only app: `kiosk/main.py` replaces
   `main.py`, so power-on, RESET, HOME and waking all start Mood Badger.
+  On a Tufty it replaces start-in-app, so HOME stops opening the menu.
   Double-tap RESET still reaches disk mode, so this can't lock anyone
   out.
 - `--menu` brings the menu back by restoring that model's stock
@@ -133,25 +136,26 @@ Use `--dest /Volumes/<name>` if the drive has an unusual name, and
 If the copy check fails, run the command again. If it keeps failing,
 the drive may be full (badge_info's free space line) or the cable flaky.
 
-### 5. Confirm on the badge
+### 4. Confirm on the badge
 
 In this order:
 
 1. Only after the script prints "Ejected", tell the user it's safe to
    touch the badge. If it printed that the eject failed, have them
    eject the drive from Finder before pressing anything.
-2. It restarts by itself: onto the menu, or Mood Badger in kiosk mode.
-   A Tufty in start-in-app mode restarts onto the app list (the eject's
-   restart is the one HOME makes): tell the user to press RESET once.
+2. It restarts by itself. A Tufty in start-in-app mode restarts onto
+   the menu (seen on hardware: the eject's restart is a watchdog reboot,
+   like HOME): tell the user to press RESET once. A Badger should reopen
+   the app it was showing before disk mode (from the source; not seen
+   yet), and kiosk mode opens Mood Badger.
    If the disk mode screen is still up after 10 seconds, they press
    RESET once.
 3. If what the screen shows matters (a start-up mode change), ask the
    user what they see **before** the next step, which restarts the
    badge and would hide it.
 4. Check the copy from the badge's side:
-   `python3 -m tools.badge_check files`. It restarts the badge onto the
-   menu (app list), so the user may need RESET again on a start-in-app
-   Tufty.
+   `python3 -m tools.badge_check files`. It restarts the badge the same
+   way, so the user may need RESET again on a start-in-app Tufty.
 5. Ask the user to check the change they made, using the hand
    checklist for that badge in the `badge-verify` skill.
 
@@ -167,10 +171,10 @@ The Tufty gets the same `badger/mood_badger` folder; the app checks
 these differences:
 
 - **Start-in-app is the normal Tufty setup.** The Tufty's stock
-  `main.py` always opens the app list, so without it the child has to
-  find Mood Badger in the list after every power-on. On a Tufty's first
+  `main.py` always opens the menu, so without it the child has to
+  find Mood Badger in the menu after every power-on. On a Tufty's first
   install, offer `--start-in-app` unless the user wants the menu or
-  kiosk mode. HOME then opens the app list; RESET or power-on brings
+  kiosk mode. HOME then opens the menu; RESET or power-on brings
   Mood Badger back.
 - `badge_info` and `--menu` use the Tufty's own stock `main.py`
   (`vendor/tufty2350/firmware/main.py`), never the Badger's.

@@ -260,7 +260,7 @@ def main():
                   "showing after 10 seconds, press RESET once.")
             if mode == "start-in-app":
                 # The restart after an eject is a watchdog reboot, like HOME.
-                print("It opens on the app list: press RESET once to open Mood Badger.")
+                print("It opens on the menu: press RESET once to open Mood Badger.")
         else:
             print("Couldn't eject {}. Don't press RESET yet: eject it from Finder\n"
                   "first, or some files may not reach the badge.".format(root))

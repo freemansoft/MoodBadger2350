@@ -44,7 +44,8 @@ def test_verify_skill_has_frontmatter():
 def test_verify_skill_commands_and_files_exist():
     text = VERIFY.read_text()
     modules = set(re.findall(r"python3 -m tools\.(\w+)", text))
-    assert modules >= {"badge_info", "install", "badge_check"}
+    assert modules >= {"badge_info", "badge_check"}
+    assert "badge-deploy" in text, "installs are handed to the badge-deploy skill"
     assert all((ROOT / "tools" / (m + ".py")).exists() for m in modules)
     for path in ("tests/fake_badgeware.py", "tests/test_sim.py", "sim/stage.py",
                  "sim/run_headless.mjs", "vendor/badger2350/ci/ruff.toml"):

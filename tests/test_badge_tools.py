@@ -351,7 +351,7 @@ def test_flash_confirmation_ignores_other_badges_and_gives_up():
 
 def test_start_in_app_eject_says_to_press_reset(tmp_path, monkeypatch, capsys):
     # The restart after the disk-mode eject is a watchdog reboot (seen on a
-    # real Tufty: WAKE_WATCHDOG), so start-in-app lands on the app list.
+    # real Tufty: WAKE_WATCHDOG), so start-in-app lands on the menu.
     root = fake_drive(tmp_path, "TUFTY")
     monkeypatch.setattr(install, "APPS", {"tufty": fake_app(tmp_path)})
     monkeypatch.setattr(install, "eject", lambda root: True)
@@ -359,4 +359,4 @@ def test_start_in_app_eject_says_to_press_reset(tmp_path, monkeypatch, capsys):
     install.main()
     out = capsys.readouterr().out
     assert "Start-up: start-in-app" in out
-    assert "app list: press RESET once to open Mood Badger" in out
+    assert "menu: press RESET once to open Mood Badger" in out
