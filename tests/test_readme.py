@@ -81,3 +81,45 @@ def test_readme_start_up_section_covers_both_badges_and_kiosk():
         assert needed in section, needed
     kiosk = section[section.index("### Kiosk mode"):]
     assert "start-in-app" in kiosk, "kiosk mode must say it replaces start-in-app on a Tufty"
+
+
+DOCS = ["README.md", "CLAUDE.md", "badger/mood_badger/README.md",
+        ".claude/skills/badge-deploy/SKILL.md", ".claude/skills/badge-firmware/SKILL.md",
+        ".claude/skills/badge-verify/SKILL.md", ".claude/skills/badgeware-platforms/SKILL.md"]
+
+
+def test_docs_call_pimoroni_launcher_the_menu_on_both_badges():
+    # One word for one thing: "menu", never "app list".
+    for path in DOCS:
+        assert "app list" not in (ROOT / path).read_text().lower(), path
+
+
+def test_readme_install_tools_cover_all_four_tools_and_both_models():
+    text = (ROOT / "README.md").read_text()
+    tools = text[text.index("### Using the install tools"):text.index("## What the badge opens")]
+    for needed in ("tools.badge_info", "tools.install", "tools.flash_firmware", "tools.badge_check",
+                   "--model tufty", "Windows"):
+        assert needed in tools, needed
+
+
+def test_readme_install_says_how_to_get_the_files():
+    assert "Download ZIP" in (ROOT / "README.md").read_text()
+
+
+def test_readme_start_in_app_can_be_set_by_hand():
+    assert "cp -X kiosk/start_in_app.py /Volumes/TUFTY/main.py" in (ROOT / "README.md").read_text()
+
+
+def test_requirements_include_mpremote_for_the_badge_tools():
+    assert "mpremote" in (ROOT / "requirements-dev.txt").read_text().split()
+
+
+def test_platform_skill_says_only_badger_home_resets_the_last_app():
+    text = (ROOT / ".claude/skills/badgeware-platforms/SKILL.md").read_text()
+    assert "clear_running()" in text
+
+
+def test_app_readme_does_not_say_every_button_moves_to_the_next_mood():
+    text = (ROOT / "badger" / "mood_badger" / "README.md").read_text()
+    assert "any front button wakes it and moves" not in text
+    assert "## On a Badger 2350" in text and "## On a Tufty 2350" in text
