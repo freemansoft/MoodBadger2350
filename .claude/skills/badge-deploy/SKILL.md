@@ -135,6 +135,10 @@ the drive may be full (badge_info's free space line) or the cable flaky.
 
 ### 5. Confirm on the badge
 
+Check the copy from the badge's side first, with
+`python3 -m tools.badge_check files` (it restarts the badge onto the
+menu). The `badge-verify` skill has the hand checklist for each badge.
+
 Only after the script prints "Ejected", tell the user it's safe to
 touch the badge. It restarts into the menu by itself, or straight into
 Mood Badger in kiosk mode. In start-in-app mode it also restarts into the

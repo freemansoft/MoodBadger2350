@@ -30,3 +30,28 @@ def test_other_skills_and_claude_md_point_to_it():
                  ROOT / ".claude/skills/badge-deploy/SKILL.md",
                  ROOT / ".claude/skills/badge-firmware/SKILL.md"):
         assert "badgeware-platforms" in path.read_text(), path
+
+
+# --- badge-verify: the test and verification process ------------------------
+
+VERIFY = ROOT / ".claude" / "skills" / "badge-verify" / "SKILL.md"
+
+
+def test_verify_skill_has_frontmatter():
+    assert VERIFY.read_text().startswith("---\nname: badge-verify\ndescription: ")
+
+
+def test_verify_skill_commands_and_files_exist():
+    text = VERIFY.read_text()
+    modules = set(re.findall(r"python3 -m tools\.(\w+)", text))
+    assert modules >= {"badge_info", "install", "badge_check"}
+    assert all((ROOT / "tools" / (m + ".py")).exists() for m in modules)
+    for path in ("tests/fake_badgeware.py", "tests/test_sim.py", "sim/stage.py",
+                 "sim/run_headless.mjs", "vendor/badger2350/ci/ruff.toml"):
+        assert path in text and (ROOT / path).exists(), path
+
+
+def test_verify_skill_is_pointed_to_from_the_docs():
+    for path in (ROOT / "CLAUDE.md", ROOT / "README.md"):
+        assert "badge-verify" in path.read_text(), path
+    assert "tools.badge_check" in (ROOT / "README.md").read_text()

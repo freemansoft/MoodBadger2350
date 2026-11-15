@@ -268,11 +268,27 @@ python3 -m venv .venv
 | Task | Command |
 | --- | --- |
 | Run the tests | `.venv/bin/pytest` |
-| Check MicroPython syntax | `.venv/bin/python -m mpy_cross -o /dev/null badger/mood_badger/__init__.py` (and `moods.py`) |
+| Check MicroPython syntax | `for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done` |
 | Lint as `badgeware-contrib` does | `.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger` |
 | Regenerate images | `.venv/bin/python -m tools.convert_moods` |
 
 The app's logic is in `moods.py`, which has no Badgeware dependencies. `__init__.py` is the Badgeware layer, tested against a recording fake in `tests/fake_badgeware.py`.
+
+### Testing
+
+The app is a communication aid a child relies on, and the Badger is in real use, so a change is verified in layers, fastest first. Each layer catches things the one before it can't.
+
+| Layer | Command | Catches | Misses |
+| --- | --- | --- | --- |
+| 1. Unit tests | `.venv/bin/pytest` | Logic, saving, button and backlight rules, using a Badger-only name on the Tufty. `run_app(..., model="tufty", usb=[...])` in `tests/fake_badgeware.py` runs the real app against a fake of either badge | Anything the fake doesn't model: real drawing, timing, hardware |
+| 2. MicroPython checks | `mpy_cross` and `ruff` (table above) | Syntax MicroPython rejects, undefined Badgeware names | Behaviour |
+| 3. Headless simulator | `python3 sim/stage.py && node sim/run_headless.mjs --model tufty --press DOWN --frames out.json` (also run by layer 1 when `node` is installed) | The real firmware Python drawing the real app on each badge: pixels, layout, colours | Sleep, waking, restart reasons, battery, e-ink refresh |
+| 4. Browser simulator | See [Simulator](#simulator); open `/badger/` and `/tufty/` | What a person notices: does it look right? | As layer 3 |
+| 5. Real badges | `python3 -m tools.badge_info`, `python3 -m tools.install --wait 180 --eject`, `python3 -m tools.badge_check files`, `python3 -m tools.badge_check wake-reason --after-restart 180` | Firmware, the installed copy as the badge sees it, restart reasons, power, how it feels to use | - |
+
+`tools.badge_check files` compares the app on the badge (read over USB after the eject) with `badger/mood_badger`; `wake-reason` reports why the badge last restarted, optionally waiting for you to press RESET or HOME first. Both stop the running app and restart the badge onto the menu (a Tufty in start-in-app mode too; RESET brings Mood Badger back).
+
+Which layers a change needs, and the hand checklists for each badge, are in the `badge-verify` Claude Code skill (`.claude/skills/badge-verify/SKILL.md`), which is also readable as a plain checklist. In short: app code needs every layer on both badges; `moods.py`-only changes need layers 1 and 2; boot files need a wake-reason check on the badge.
 
 ### Simulator
 
@@ -296,6 +312,8 @@ The repository is set up for [Claude Code](https://claude.com/claude-code). `CLA
 | `superpowers` | Brainstorming, plans, test-driven development, debugging, code review |
 | `skill-creator` | Creating and improving project skills under `.claude/skills/` |
 | `claude-md-management` | Checking `CLAUDE.md` against the code and saving what a session learned |
+
+Project skills in `.claude/skills/`: `badge-deploy` (install the app), `badge-firmware` (check and flash firmware), `badge-verify` (the [testing](#testing) layers and hand checklists) and `badgeware-platforms` (how the Badger and Tufty differ, with firmware references).
 
 Personal permission rules, such as commands Claude may run without asking, go in `.claude/settings.local.json`, which is not committed.
 
