@@ -1,8 +1,8 @@
 # Mood Badger
 
-Show how you feel on your Badger 2350. Each mood is a picture and a word, and the e-ink screen keeps showing it while the badge sleeps. A port of [MoodBadger](https://github.com/simonpainter/MoodBadger) for the Badger 2040.
+Show how you feel on your Badger 2350 or Tufty 2350. Each mood is a picture and a word. On the Badger the e-ink screen keeps showing it while the badge sleeps; on the Tufty the same pictures are shown larger, and the screen dims instead of going dark. A port of [MoodBadger](https://github.com/simonpainter/MoodBadger) for the Badger 2040.
 
-Requires Badger 2350 firmware **v3.1.1** or later.
+Requires Badger 2350 or Tufty 2350 firmware **v3.1.1** or later. The same app folder runs on both.
 
 ## Controls
 
@@ -11,6 +11,14 @@ Requires Badger 2350 firmware **v3.1.1** or later.
 - **HOME**: back to the menu
 
 Hold a button until the screen starts to change; a quick tap during a refresh can be missed. On battery the badge sleeps after 5 seconds, and any front button wakes it and moves straight to the next mood.
+
+## On a Tufty 2350
+
+The buttons are the same. The screen is at full brightness after any press and dims after 10 seconds without one: to about half on USB power, to about 15% on battery. It never goes dark, so the mood is always visible. A press on a dimmed screen only brightens it; the next press changes the mood. The press that turns the badge on also only shows the saved mood.
+
+The Tufty doesn't switch itself off. To turn it off, hold RESET on the back until the case lights fade; any front button turns it on again.
+
+To have it open Mood Badger when it is turned on or reset, with HOME still opening the app list, install with `python3 -m tools.install --start-in-app` (see the main README).
 
 ## Changing the moods
 
@@ -26,7 +34,7 @@ Edit `config.json` in this folder. `moods` is a list of mood sets; each mood is 
 }
 ```
 
-Images look best at 122×136 pixels in black, white and two greys.
+Images look best at 122×136 pixels in black, white and two greys. The Tufty shows them 1.5 times larger.
 
 ## Credits
 

@@ -4,3 +4,6 @@
 [submodule "vendor/MoodBadger"]
 	path = vendor/MoodBadger
 	url = https://github.com/simonpainter/MoodBadger
+[submodule "vendor/tufty2350"]
+	path = vendor/tufty2350
+	url = https://github.com/pimoroni/tufty2350

@@ -1,18 +1,21 @@
 """Copy Mood Badger onto a Badgeware badge in USB disk mode.
 
 1. Double-tap RESET on the back of the badge. It mounts as a USB drive
-   (BADGER on a Badger 2350; TUFTY or similar on a Tufty 2350).
+   (BADGER on a Badger 2350; TUFTY on a Tufty 2350).
 2. From the repository root, run one of:
 
-    python3 -m tools.install --eject             # app only
-    python3 -m tools.install --kiosk --eject     # app, and make it the only app
-    python3 -m tools.install --menu --eject      # app, and bring the menu back
+    python3 -m tools.install --eject                # app only
+    python3 -m tools.install --start-in-app --eject # Tufty: open Mood Badger at start-up,
+                                                    # HOME opens the menu
+    python3 -m tools.install --kiosk --eject        # app, and make it the only app
+    python3 -m tools.install --menu --eject         # app, and bring the menu back
     python3 -m tools.install --dest /Volumes/BADGER
 
 3. The badge restarts when the drive is ejected. Press RESET if it
    stays on the disk mode screen.
 
-Only apps/mood_badger is replaced (and main.py, with --kiosk or --menu).
+Only apps/mood_badger is replaced (and main.py, with --start-in-app,
+--kiosk or --menu). Both badges get the same app folder.
 Other apps stay, and the saved mood stays: it is in /state, on the
 badge's internal LittleFS, which isn't part of the drive.
 
@@ -31,27 +34,38 @@ from tools import badgeware_release as rel
 ROOT = Path(__file__).resolve().parent.parent
 APP = "mood_badger"
 
-# The app folder to install for each badge.model. Add "tufty" here when
-# a Tufty build of Mood Badger exists (e.g. ROOT / "tufty" / APP).
-APPS = {"badger": ROOT / "badger" / APP}
+# The app folder to install for each badge.model. One folder serves both:
+# the app checks badge.model at start-up.
+APPS = {"badger": ROOT / "badger" / APP, "tufty": ROOT / "badger" / APP}
 
-# Disk mode drive labels. The Badger's is set by PIMORONI_FATFS_LABEL in
-# vendor/badger2350/board/mpconfigboard.cmake; the rest are seen in the
-# wild or in Pimoroni's READMEs.
+# Disk mode drive labels. BADGER and TUFTY are set by PIMORONI_FATFS_LABEL
+# in vendor/<model>2350/board/mpconfigboard.cmake; the rest are seen in
+# the wild or in Pimoroni's READMEs.
 DRIVE_MODELS = {"BADGER": "badger", "BADGER2350": "badger",
                 "TUFTY": "tufty", "TUFTY2350": "tufty"}
 
 KIOSK_MAIN = ROOT / "kiosk" / "main.py"
-# The stock main.py from the pinned firmware (v3.1.1). A newer firmware
-# may ship a different one; take it from that release if they differ.
-STOCK_MAIN = ROOT / "vendor" / "badger2350" / "firmware" / "main.py"
+START_IN_APP_MAIN = ROOT / "kiosk" / "start_in_app.py"
+# Each model's stock main.py from the pinned firmware (v3.1.1). A newer
+# firmware may ship a different one; take it from that release if they differ.
+STOCK_MAINS = {model: ROOT / "vendor" / (model + "2350") / "firmware" / "main.py"
+               for model in ("badger", "tufty")}
+
+START_IN_APP_BADGER = ("Start-in-app mode is for the Tufty 2350; the Badger already returns "
+                       "to Mood Badger after a wake. Nothing copied.")
 
 JUNK = shutil.ignore_patterns("__pycache__", "*.pyc", ".DS_Store", "._*")
 
 
-def is_kiosk(main_py):
-    """True if a main.py launches Mood Badger directly (kiosk/main.py)."""
-    return 'launch("/system/apps/{}")'.format(APP) in main_py
+def boot_mode(main_py):
+    """What a badge's main.py does at start-up: "menu" (a stock file),
+    "start-in-app" (kiosk/start_in_app.py), "kiosk" (kiosk/main.py), or
+    "custom" (anything else, such as a hand-edited file)."""
+    if any(main_py.rstrip() == path.read_text().rstrip() for path in STOCK_MAINS.values()):
+        return "menu"
+    if 'launch("/system/apps/{}")'.format(APP) in main_py:
+        return "start-in-app" if "WAKE_WATCHDOG" in main_py else "kiosk"
+    return "custom"
 
 
 def model_for_drive(root):
@@ -196,10 +210,13 @@ def main():
     parser.add_argument("--model", choices=rel.MODELS,
                         help="badge model, if the drive's label doesn't say")
     boot = parser.add_mutually_exclusive_group()
+    boot.add_argument("--start-in-app", action="store_true",
+                      help="Tufty: open Mood Badger at start-up, the menu after HOME "
+                           "(kiosk/start_in_app.py)")
     boot.add_argument("--kiosk", action="store_true",
                       help="also make Mood Badger the only app (kiosk/main.py)")
     boot.add_argument("--menu", action="store_true",
-                      help="also restore the stock main.py, bringing the menu back")
+                      help="also restore that model's stock main.py, bringing the menu back")
     parser.add_argument("--eject", action="store_true", help="eject the drive afterwards")
     parser.add_argument("--wait", type=int, default=0, metavar="SECONDS",
                         help="wait this long for the drive to appear (default: don't wait)")
@@ -212,6 +229,8 @@ def main():
     if model not in APPS:
         sys.exit("Mood Badger has no {} build yet (only: {}). Nothing copied.".format(
             model, ", ".join(APPS)))
+    if args.start_in_app and model != "tufty":
+        sys.exit(START_IN_APP_BADGER)
 
     src = APPS[model]
     print("Copying to {}. Don't press any buttons until this says it has ejected."
@@ -223,18 +242,25 @@ def main():
                  "drive is still mounted, run this again.".format(e))
     print("Installed {} files to {}".format(len(_app_files(src)), target))
 
-    if args.kiosk:
+    if args.start_in_app:
+        set_main(root, START_IN_APP_MAIN)
+        print("Start-in-app on: Mood Badger opens at start-up; HOME opens the menu.")
+    elif args.kiosk:
         set_main(root, KIOSK_MAIN)
         print("Kiosk mode on: main.py now starts Mood Badger.")
     elif args.menu:
-        set_main(root, STOCK_MAIN)
-        print("Menu restored: main.py is the stock one from vendor/badger2350 (v3.1.1).")
-    print("Kiosk mode: {}".format("on" if is_kiosk((root / "main.py").read_text()) else "off"))
+        set_main(root, STOCK_MAINS[model])
+        print("Menu restored: main.py is the stock one from vendor/{}2350 (v3.1.1).".format(model))
+    mode = boot_mode((root / "main.py").read_text())
+    print("Start-up: {}".format(mode))
 
     if args.eject:
         if eject(root):
             print("Ejected. The badge restarts by itself; if the disk screen is still\n"
                   "showing after 10 seconds, press RESET once.")
+            if mode == "start-in-app":
+                # The restart after an eject is a watchdog reboot, like HOME.
+                print("It opens on the app list: press RESET once to open Mood Badger.")
         else:
             print("Couldn't eject {}. Don't press RESET yet: eject it from Finder\n"
                   "first, or some files may not reach the badge.".format(root))

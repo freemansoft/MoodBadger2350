@@ -1,4 +1,4 @@
-# Simulator boot: load the real badgeware firmware package, then launch
+# Simulator boot (both badges): load the real badgeware firmware package, then launch
 # Mood Badger directly (skipping the menu). The host page runs this after it
 # has written the staged files into the MicroPython filesystem.
 
@@ -21,8 +21,10 @@ sys.path.insert(0, "/frozen")   # firmware badgeware package (see stage.py)
 import badgeware  # noqa: E402, F401
 
 
-# The firmware version busy-waits on button polls. In a single-threaded
-# browser that starves the page of key events, so yield on every pass.
+# The Badger firmware's version busy-waits on button polls. In a single-threaded
+# browser that starves the page of key events, so yield on every pass. The
+# Tufty firmware has no such function (its run() yields after every frame),
+# so don't add one there: the app must not depend on it.
 def wait_for_button_or_alarm(timeout=30_000):
     t_start = time.ticks_ms()
     while True:
@@ -36,6 +38,7 @@ def wait_for_button_or_alarm(timeout=30_000):
         time.sleep_ms(10)
 
 
-builtins.wait_for_button_or_alarm = wait_for_button_or_alarm
+if hasattr(builtins, "wait_for_button_or_alarm"):
+    builtins.wait_for_button_or_alarm = wait_for_button_or_alarm
 
 launch("/system/apps/mood_badger")

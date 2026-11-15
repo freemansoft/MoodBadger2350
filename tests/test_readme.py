@@ -44,3 +44,9 @@ def test_mood_images_carry_their_apache_licence():
         text = (ROOT / path).read_text()
         assert "Material" in text and "Apache License 2.0" in text, path
         assert "not cleared for redistribution" not in text and "remain his" not in text, path
+
+
+def test_readme_explains_start_in_app_for_the_tufty():
+    text = (ROOT / "README.md").read_text()
+    assert "--start-in-app" in text
+    assert "vendor/tufty2350/firmware/main.py" in text

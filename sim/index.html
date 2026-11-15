@@ -16,6 +16,7 @@
   #screen {
     width: 792px; max-width: calc(100vw - 32px); aspect-ratio: 264 / 176;
     background: #fff; border-radius: 6px; image-rendering: pixelated;
+    transition: filter .2s;
     box-shadow: 0 6px 30px rgba(0, 0, 0, .25);
   }
   kbd {
@@ -27,14 +28,15 @@
 </style>
 </head>
 <body>
-  <h1>Mood Badger on the Badger 2350 simulator</h1>
+  <h1 id="title">Mood Badger simulator</h1>
   <canvas id="screen" width="792" height="528"></canvas>
   <div id="status">loading MicroPython...</div>
   <div class="hint">
     <kbd>&uarr;</kbd> previous mood &middot; <kbd>&darr;</kbd> next mood &middot;
     <kbd>A</kbd> previous set &middot; <kbd>C</kbd> next set &middot; <kbd>H</kbd> home
   </div>
-  <div class="hint">Sleep, wake, refresh time and e-paper contrast are not simulated.</div>
+  <div class="hint" id="limits"></div>
+  <div class="hint"><a href="../">Other badge</a></div>
 
 <script type="module">
 import { loadMicroPython } from "./micropython.mjs";
@@ -44,17 +46,37 @@ const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 const status = document.getElementById("status");
 
+// One page serves both badges: sim/dist/badger/ and sim/dist/tufty/.
+const TUFTY = location.pathname.includes("/tufty/");
+const NAME = TUFTY ? "Tufty 2350" : "Badger 2350";
+document.title = "Mood Badger: " + NAME + " simulator";
+document.getElementById("title").textContent = "Mood Badger on the " + NAME + " simulator";
+document.getElementById("limits").textContent = TUFTY
+  ? "Battery power and powering off are not simulated; the screen dims as it does on USB."
+  : "Sleep, wake, refresh time and e-paper contrast are not simulated.";
+
 const off = document.createElement("canvas");
 const offctx = off.getContext("2d");
 
-// Host contract: the simulator's ssd1680.update() passes its RGBA framebuffer.
+// Host contract: the simulator's ssd1680 (Badger) and st7789 (Tufty) shims
+// pass their RGBA framebuffer on every display update. The canvas takes its
+// size from the first one, at 3x.
+const SCALE = 3;
 globalThis.blitrgba = (addr, w, h) => {
   const heap = globalThis.Module.HEAPU8;
   const pixels = new Uint8ClampedArray(heap.subarray(addr, addr + w * h * 4));
+  if (canvas.width !== w * SCALE || canvas.height !== h * SCALE) {
+    canvas.width = w * SCALE; canvas.height = h * SCALE;
+    canvas.style.aspectRatio = w + " / " + h;
+    ctx.imageSmoothingEnabled = false;
+  }
   if (off.width !== w || off.height !== h) { off.width = w; off.height = h; }
   offctx.putImageData(new ImageData(pixels, w, h), 0, 0);
   ctx.drawImage(off, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
 };
+
+// Host contract: the Tufty's st7789 shim forwards display.backlight(0..1).
+globalThis.backlight = (value) => { canvas.style.filter = "brightness(" + value + ")"; };
 
 // Host contract: buttons as an active-high bitmask; VBUS reads as connected
 // and the active-low RTC alarm as idle.

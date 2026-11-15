@@ -20,6 +20,35 @@ ARROW_C_X = 210
 ARROW_MID_Y = 157
 ARROW_HALF = 5
 
+# Where things go on each badge, keyed by badge.model. The Badger's numbers
+# are the constants above. The Tufty (320x240 in HIRES) is a bigger Badger:
+# the 122x136 picture scaled 1.5x, with the arrow x positions scaled by
+# 320/264 so they sit above its A and C buttons.
+BADGER = {
+    "screen_w": SCREEN_WIDTH, "screen_h": SCREEN_HEIGHT,
+    "image_pos": (61, 2), "image_size": (122, 136),
+    "label_centre_x": 122, "label_max_width": 140,
+    "arrow_a_x": ARROW_A_X, "arrow_c_x": ARROW_C_X,
+    "arrow_mid_y": ARROW_MID_Y, "arrow_half": ARROW_HALF,
+    "pip_x": PIP_X, "pip_size": PIP_SIZE, "pip_spacing": PIP_SPACING,
+}
+TUFTY = {
+    "screen_w": 320, "screen_h": 240,
+    "image_pos": (59, 4), "image_size": (183, 204),
+    "label_centre_x": 150, "label_max_width": 170,
+    "arrow_a_x": 52, "arrow_c_x": 255,
+    "arrow_mid_y": 224, "arrow_half": 7,
+    "pip_x": 300, "pip_size": 10, "pip_spacing": 13,
+}
+LAYOUTS = {"badger": BADGER, "tufty": TUFTY}
+
+# Tufty backlight: full on any press; dimmed (never dark, so the mood stays
+# visible) after DIM_AFTER_MS with no press, brighter on USB than on battery.
+DIM_AFTER_MS = 10_000
+BRIGHT = 1.0
+DIM_USB = 0.5
+DIM_BATTERY = 0.15
+
 
 def _is_text(value):
     return type(value) is str and value != ""
@@ -91,17 +120,26 @@ def apply_input(config, set_index, mood_index, up, down, prev_set, next_set):
     return set_index, (mood_index + step) % count
 
 
-def set_arrows(set_count):
+def set_arrows(set_count, layout=BADGER):
     """Triangles hinting at the set buttons, as lists of (x, y); none for a single set."""
     if set_count < 2:
         return []
-    top, bottom = ARROW_MID_Y - ARROW_HALF, ARROW_MID_Y + ARROW_HALF
-    left = [(ARROW_A_X - ARROW_HALF, ARROW_MID_Y), (ARROW_A_X + ARROW_HALF, top), (ARROW_A_X + ARROW_HALF, bottom)]
-    right = [(ARROW_C_X + ARROW_HALF, ARROW_MID_Y), (ARROW_C_X - ARROW_HALF, top), (ARROW_C_X - ARROW_HALF, bottom)]
+    a, c, mid, half = layout["arrow_a_x"], layout["arrow_c_x"], layout["arrow_mid_y"], layout["arrow_half"]
+    top, bottom = mid - half, mid + half
+    left = [(a - half, mid), (a + half, top), (a + half, bottom)]
+    right = [(c + half, mid), (c - half, top), (c - half, bottom)]
     return [left, right]
 
 
-def pip_positions(count):
+def pip_positions(count, layout=BADGER):
     """Top-left corners of the pips for a set of count moods, centred vertically."""
-    top = (SCREEN_HEIGHT - count * PIP_SPACING) // 2
-    return [(PIP_X, top + i * PIP_SPACING) for i in range(count)]
+    spacing = layout["pip_spacing"]
+    top = (layout["screen_h"] - count * spacing) // 2
+    return [(layout["pip_x"], top + i * spacing) for i in range(count)]
+
+
+def backlight_level(idle_ms, on_usb):
+    """Tufty backlight level after idle_ms with no button press."""
+    if idle_ms < DIM_AFTER_MS:
+        return BRIGHT
+    return DIM_USB if on_usb else DIM_BATTERY
