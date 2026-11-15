@@ -77,3 +77,9 @@ submodule**.
   `boot_mode()` names what a badge's `main.py` does, and
   `--start-in-app` is refused on a Badger (its stock `main.py` already
   returns to the last app).
+
+Confirmed on a Tufty at v3.1.1 (2026-11-15): a single RESET reports
+`WAKE_RESET` (241), `machine.reset()` (HOME, `mpremote ... reset`,
+`tools.badge_info`) `WAKE_WATCHDOG` (242), and a double-tap
+`WAKE_DOUBLETAP` (5). So anything that calls `machine.reset()` lands a
+start-in-app Tufty on the menu, not only HOME.

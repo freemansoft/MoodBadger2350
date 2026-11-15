@@ -59,7 +59,9 @@ It reports the model, whether the firmware looks current, whether Mood
 Badger is installed and the "Start-up" mode (menu, kiosk,
 start-in-app or custom). Note it so you can tell the user if it changes. It restarts the badge when it
 has finished (the menu reappears after a couple of seconds), so the
-user doesn't need to press anything.
+user doesn't need to press anything. A Tufty in start-in-app mode
+comes back on the menu too, because this restart is the one HOME makes;
+that is expected, and RESET brings Mood Badger back.
 
 - **Firmware OLDER than the latest release, or no build date:** stop
   and use the badge-firmware skill first, then come back.

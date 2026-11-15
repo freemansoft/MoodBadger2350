@@ -98,8 +98,8 @@ Kiosk mode (`--kiosk`, [above](#make-it-the-only-app)) works on a Tufty too, if 
 | **A** | Previous mood set, opening on its `initial` mood (the first by default). Does nothing with only one set |
 | **C** | Next mood set, opening on its `initial` mood (the first by default). Does nothing with only one set |
 | **B** | Not used |
-| **HOME** (back) | Return to the menu (restart Mood Badger when it is [the only app](#make-it-the-only-app)) |
-| **RESET** (back) | Restart the badge into the menu (into Mood Badger when it is the only app) |
+| **HOME** (back) | Return to the menu (restart Mood Badger when it is [the only app](#make-it-the-only-app)). Also the menu on a Tufty in [start-in-app mode](#on-a-tufty-2350) |
+| **RESET** (back) | Restart the badge into the menu (into Mood Badger when it is the only app, or on a Tufty in start-in-app mode). Hold it on a Tufty to power off |
 
 All five front buttons (A, B, C, UP and DOWN) are available to apps. HOME and RESET belong to the firmware.
 
