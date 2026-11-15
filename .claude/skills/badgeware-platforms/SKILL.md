@@ -20,6 +20,7 @@ submodule**.
 | Screen | e-ink, keeps its image unpowered, slow refresh | colour LCD with a backlight, `display.backlight(0..1)` | `vendor/tufty2350/modules/common/badgeware/__init__.py` |
 | Resolution | 264x176 | 160x120 (LORES, default) or 320x240 after `badge.mode(HIRES)` | `vendor/tufty2350/modules/common/badgeware/badge.py` (`mode()`) |
 | Default pen and clear | black on white | white on black | `vendor/tufty2350/modules/common/badgeware/badge.py` (`Badge.__init__`) |
+| `color.white`, `color.black` | pure white (255, 255, 255), pure black | an off-white (0xde, 0xee, 0xd6) and a dark navy (0x14, 0x1e, 0x28), from a Dawnbringer palette; use `color.rgb(255, 255, 255)` and `color.rgb(0, 0, 0)` for true black and white | pimoroni/picovector `micropython/color.cpp` (`#ifdef TUFTY`), not vendored |
 | `run(update)` loop | calls `update()` only; the app calls `badge.update()` to refresh | `badge.clear()` before and `display.update()` after every `update()`, every frame (~90 fps with `VSYNC`) | `vendor/badger2350/modules/common/badgeware/__init__.py`, `vendor/tufty2350/modules/common/badgeware/__init__.py` (`_run.__call__`) |
 | `badge.first_update` | set False after the first `badge.update()` | never set False | `vendor/badger2350/modules/common/badgeware/badge.py` |
 | `NON_BLOCKING` | defined | not defined (NameError) | `vendor/badger2350/modules/common/badgeware/badge.py` |
@@ -55,6 +56,9 @@ submodule**.
   app's import blocks inside `run()`, and HOME looks `on_exit` up on the
   module, so anything defined after `run()` doesn't exist yet.
 - **HIRES on the Tufty** for anything taller than 120 px.
+- **Don't use `color.white`/`color.black` for a monochrome look on the
+  Tufty.** They are tinted there, so a pure black-and-white picture sits in
+  a visible box. Mood Badger uses `color.rgb()` on the Tufty.
 
 ## How Mood Badger handles them
 

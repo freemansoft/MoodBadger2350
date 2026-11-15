@@ -98,3 +98,11 @@ def test_tufty_label_that_fits_170_but_not_140_keeps_ignore():
     # 13 chars: 156 px in ignore, too wide on the Badger, fits on the Tufty
     config = '{"moods": [[["Overwhelmed!!", "sent_sad.png"]]]}'
     assert run_app([set()], config_text=config, **T).texts == [("Overwhelmed!!", "ignore")]
+
+
+def test_tufty_draws_in_pure_black_and_white_like_the_pictures():
+    # On the Tufty, picovector's color.white and color.black are an off-white
+    # and a dark navy; the mood pictures are pure black and white.
+    r = run_app([set()] * 2, **T)
+    assert r.clear_pens == [(255, 255, 255)] * 2
+    assert r.text_pens == [(0, 0, 0)] * 2

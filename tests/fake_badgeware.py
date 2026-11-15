@@ -49,6 +49,8 @@ class Result:
         self.backlight = []
         self.blit_rects = []
         self.loads = 0
+        self.clear_pens = []
+        self.text_pens = []
         self.exit = None
 
 
@@ -65,6 +67,10 @@ class _Fonts:
 class _Colors:
     white = "white"
     black = "black"
+
+    @staticmethod
+    def rgb(r, g, b, a=255):
+        return (r, g, b)
 
 
 class _Shape:
@@ -115,6 +121,7 @@ class _Screen:
 
     def clear(self):
         self._r.events.append("clear")
+        self._r.clear_pens.append(self.pen)
 
     def blit(self, img, pos):
         self._r.events.append("blit")
@@ -124,6 +131,7 @@ class _Screen:
     def text(self, text, x, y):
         self._r.events.append("text")
         self._r.texts.append((text, self.font.name))
+        self._r.text_pens.append(self.pen)
         self._r.text_y.append(y)
 
     def measure_text(self, text):
@@ -231,7 +239,7 @@ def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=
         for i, buttons in enumerate(ticks):
             badge.frame, badge.ticks = i, i * frame_ms
             badge.current = set(buttons)
-            screen.clear()
+            result.events.append("badge.clear")  # in the Tufty's default colour
             update()
             result.events.append("display")
 

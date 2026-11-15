@@ -162,3 +162,8 @@ def test_badger_on_exit_does_nothing():
     r = run_app([set()])
     r.exit()
     assert r.backlight == []
+
+
+def test_badger_draws_with_the_named_colours():
+    r = run_app([set()])
+    assert r.clear_pens == ["white"] and r.text_pens == ["black"]

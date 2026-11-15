@@ -32,6 +32,11 @@ state["set"], state["mood"] = moods.restore(config, state)
 TUFTY = badge.model == "tufty"
 layout = moods.TUFTY if TUFTY else moods.BADGER
 
+# The pictures are pure black and white. On the Tufty, color.white and
+# color.black are an off-white and a dark navy, which would box them in.
+PAPER = color.rgb(255, 255, 255) if TUFTY else color.white
+INK = color.rgb(0, 0, 0) if TUFTY else color.black
+
 
 def on_exit():
     # HOME: never leave the Tufty's menu at the dim level.
@@ -42,7 +47,7 @@ def on_exit():
 def draw_label_and_marks(mood_set, mood_index):
     label = mood_set[mood_index][0]
 
-    screen.pen = color.black
+    screen.pen = INK
     for label_font in LABEL_FONTS:
         screen.font = label_font
         width, height = screen.measure_text(label)
@@ -77,7 +82,7 @@ def load_picture(image_name):
 
 def draw(mood_set, mood_index):
     # The framebuffer holds garbage after a wake, so always start from white.
-    screen.pen = color.white
+    screen.pen = PAPER
     screen.clear()
 
     picture = load_picture(mood_set[mood_index][1])
@@ -153,7 +158,7 @@ def update_tufty():
     if tufty["picture"][0] != image_name:
         tufty["picture"] = (image_name, load_picture(image_name))
 
-    screen.pen = color.white
+    screen.pen = PAPER
     screen.clear()
     picture = tufty["picture"][1]
     if picture is not None:
