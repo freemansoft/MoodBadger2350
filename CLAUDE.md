@@ -9,7 +9,9 @@ Mood Badger: a MicroPython Badgeware app for the e-ink Pimoroni Badger 2350, por
 - MicroPython syntax: `.venv/bin/python -m mpy_cross -o /dev/null <file>` for each app module
 - Lint: `.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger`
 - Simulator: `python3 sim/stage.py && python3 -m http.server -d sim/dist 8000`
-- Real badge: use the project skills `badge-deploy` (copy the app in disk mode) and `badge-firmware` (check or flash firmware in bootloader mode). They drive `tools/badge_info.py`, `tools/install.py` and `tools/flash_firmware.py`, which run as modules (`python3 -m tools.install`) and need the user to press buttons, so wait for them at each step
+- Real badge: use the project skills `badge-deploy` (copy the app in disk mode) and `badge-firmware` (check or flash firmware in bootloader mode). They drive `tools/badge_info.py`, `tools/install.py` and `tools/flash_firmware.py`, which run as modules (`python3 -m tools.install`). For a button press, start the tool with `--wait 180` in the background and end the turn with the instructions; tell the user not to touch the badge until the tool says "Ejected" or "Flash complete"
+- Ad-hoc `mpremote`: take the port whose `mpremote devs` line says `Badger 2350` (a Tufty and other boards are often plugged in too), and end with `reset` (`mpremote connect <port> exec "..." reset`), or the badge stays frozen on its last screen until RESET. `/system` (the drive) is read-only from MicroPython, so files only change in disk mode
+- Check a copy from the badge's side after the eject (list `/system/apps/mood_badger` over `mpremote`), not by reading the mounted drive: macOS holds writes in its cache until the eject
 
 Read hardware and runtime behaviour from the firmware source in `vendor/badger2350` (pinned to `v3.1.1`), not only from badgewa.re/docs: the docs can lag the source. Keep `badger/mood_badger/moods.py` free of Badgeware names so it stays testable on a desktop, and never call `badge.poll()` or `badge.update()` before `run(update)`, or the button press that woke the badge is lost.
 
@@ -50,3 +52,5 @@ Use `claude-md-management:claude-md-improver` to check CLAUDE.md against the cod
 ### Skill creator
 
 Use `skill-creator:skill-creator` to add a project skill under `.claude/skills/`, or to improve an existing one, including measuring it with evals and tuning its description so it triggers reliably.
+
+Its trigger evals (`run_eval.py`, `run_loop.py`) run every query in this repo at once while the real skill is still installed, so Claude may pick the real skill or another run's copy, which counts as a miss. Patch a copy of the scripts to give each query its own project folder (symlinks to the repo, without the skill under test or `settings.local.json`).
