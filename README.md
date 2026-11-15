@@ -20,25 +20,24 @@ One app folder, `badger/mood_badger`, runs on both badges with the same moods, p
 | The first press after that | Wakes the badge **and** moves one mood | Only brightens the screen; the next press changes the mood |
 | Battery | Lasts a long time: power is only used when the mood changes | Hours rather than days, because the screen is lit and redrawn continuously (not yet measured) |
 | Turning it off | Not needed; it sleeps by itself | Hold **RESET** until the case lights fade; any front button turns it on |
-| What it opens at start-up | Waking from sleep returns to Mood Badger; RESET opens the menu (Mood Badger in [kiosk mode](#make-it-the-only-app)) | Pimoroni's app list. Install with `--start-in-app` to open Mood Badger instead ([details](#on-a-tufty-2350)) |
-| After installing with the tools | Restarts into the menu (Mood Badger in kiosk mode) | Restarts into the app list in start-in-app mode; press **RESET** once to open Mood Badger |
+| What it opens at start-up | Waking from sleep returns to Mood Badger; RESET opens the menu | Pimoroni's app list, unless installed in start-in-app mode. See [What the badge opens](#what-the-badge-opens) |
 | Disk-mode drive | `BADGER` | `TUFTY` |
 
 ## Install
 
-You need a Badger 2350 or Tufty 2350 running firmware **v3.1.1** or later. Firmware and update steps are on the [Badger 2350](https://github.com/pimoroni/badger2350/releases/latest) and [Tufty 2350](https://github.com/pimoroni/tufty2350/releases/latest) releases pages. The steps below use the Badger's drive name; on a Tufty it is `TUFTY`, and the [Tufty section](#on-a-tufty-2350) adds its start-up setting.
+You need a Badger 2350 or Tufty 2350 running firmware **v3.1.1** or later. Firmware and update steps are on the [Badger 2350](https://github.com/pimoroni/badger2350/releases/latest) and [Tufty 2350](https://github.com/pimoroni/tufty2350/releases/latest) releases pages. The steps are the same on both; only the drive name differs. On a Tufty, also set it to open Mood Badger at start-up: see [What the badge opens](#what-the-badge-opens).
 
 1. Connect the badge to your computer with a USB-C data cable.
-2. Double-tap **RESET** on the back of the badge to enter disk mode. A drive appears; Pimoroni's README calls it `Badger2350` and the Badgeware docs call it `BADGER`.
+2. Double-tap **RESET** on the back of the badge to enter disk mode. A drive appears: `BADGER` on a Badger (Pimoroni's README calls it `Badger2350`), `TUFTY` on a Tufty.
 3. Copy the `badger/mood_badger` folder from this repository into the drive's `apps` folder, giving `/apps/mood_badger`.
 4. Safely eject the drive, then press **RESET** once.
-5. Choose **Mood Badger** in the menu.
+5. Choose **Mood Badger** in the menu (the app list on a Tufty).
 
 Copying the same folder again later updates the app; your saved mood is kept.
 
 ### Copying from a Mac
 
-Finder works, but it also copies the hidden `._` files macOS adds on this kind of drive, and any `__pycache__` folder the tests leave behind. From the repository root, this copies only the app's own files. Use the drive's name as it appears under `/Volumes`:
+Finder works, but it also copies the hidden `._` files macOS adds on this kind of drive, and any `__pycache__` folder the tests leave behind. From the repository root, this copies only the app's own files. Use the drive's name as it appears under `/Volumes` (`TUFTY` on a Tufty):
 
 ```sh
 rsync -rv --exclude __pycache__ --exclude '.*' badger/mood_badger/ /Volumes/BADGER/apps/mood_badger/
@@ -54,58 +53,79 @@ The repository's `tools/` has three scripts for a badge on USB. Run them from th
 | Command | Badge mode | What it does |
 | --- | --- | --- |
 | `python3 -m tools.badge_info` | Normal (press **RESET** once) | Shows the model, whether the firmware is the latest release, whether Mood Badger is installed and what the badge starts up into (the menu, kiosk or start-in-app). Interrupts the running app to read the badge, then restarts it |
-| `python3 -m tools.install --eject` | Disk (double-tap **RESET**) | Copies only the app's files, removes files the app no longer has, checks the copy and ejects. Add `--kiosk` or `--menu` to turn [kiosk mode](#make-it-the-only-app) on or off, or on a Tufty `--start-in-app` ([start-in-app mode](#on-a-tufty-2350)) |
+| `python3 -m tools.install --eject` | Disk (double-tap **RESET**) | Copies only the app's files, removes files the app no longer has, checks the copy and ejects. Add `--start-in-app` (Tufty), `--kiosk` or `--menu` to set [what the badge opens](#what-the-badge-opens) |
 | `python3 -m tools.flash_firmware --model badger --firmware-only` | Bootloader (hold **BOOT**, tap **RESET**, let go of **BOOT**) | Downloads the latest firmware and flashes it, keeping apps and files. `--with-filesystem` instead resets every app and file to Pimoroni's defaults |
 
 Each takes `--wait SECONDS`, which keeps looking for the badge that long, so you can start the command and then press the buttons.
 
 In Claude Code, the `badge-deploy` and `badge-firmware` skills run these for you and say which buttons to press.
 
-### Make it the only app
+## What the badge opens
 
-To make the badge a dedicated mood badge that never shows the menu, replace `main.py` at the root of the drive with [`kiosk/main.py`](kiosk/main.py). Install the app as above first, then, with the badge still in disk mode:
+Without any changes, both badges come back to Mood Badger by themselves in normal use, and **HOME** still reaches Pimoroni's app list:
 
-```sh
-cp -X kiosk/main.py /Volumes/BADGER/main.py
-diskutil eject /Volumes/BADGER
-```
+- **Badger:** waking from sleep returns to the last app, so Mood Badger once it has been opened. **RESET** opens the menu.
+- **Tufty:** its stock start-up always opens the app list, so install it in **start-in-app mode** (below), the normal Tufty setup. Then power-on and **RESET** open Mood Badger.
 
-What changes:
+**Kiosk mode** goes one step further on either badge: Mood Badger is the only app, and the menu is never shown.
 
-- Power-on, **RESET** and waking from sleep all start Mood Badger.
-- **HOME** restarts Mood Badger instead of opening the menu.
-- The other apps stay on the drive but cannot be reached from the badge. You can delete their folders from `apps/`; keep `apps/menu` if you might want the menu back.
-- Double-tap **RESET** still enters disk mode. The firmware checks for it before running `main.py`, so this cannot lock you out.
+| | Badger (stock) | Tufty, start-in-app | Tufty (stock) | Kiosk mode (either) |
+| --- | --- | --- | --- | --- |
+| Power-on, or waking | Last app used (Mood Badger) | Mood Badger | App list | Mood Badger |
+| **RESET** | Menu | Mood Badger | App list | Mood Badger |
+| **HOME** | Menu | App list | App list | Mood Badger |
+| After installing with the tools | Menu* | App list: press **RESET** once | App list | Mood Badger* |
+| Install option | `--menu` | `--start-in-app` | `--menu` | `--kiosk` |
 
-To undo it, put the badge in disk mode and copy the stock file back:
+The start-in-app column was checked on a real Tufty, and power-on, waking and **HOME** on a real Badger. The rest comes from the firmware source; \* marks what hasn't been seen on a badge yet, and kiosk mode hasn't been tried on a Tufty.
 
-```sh
-cp -X vendor/badger2350/firmware/main.py /Volumes/BADGER/main.py
-```
+Each setting is a `main.py` at the root of the badge's drive; the app itself is the same. Double-tap **RESET** still enters disk mode in every setting, because the firmware checks for it before running `main.py`, so none of them can lock you out. Updating the firmware with its filesystem image replaces `main.py` with the stock one; install the setting again afterwards.
 
-That file is from firmware v3.1.1; if your badge runs a newer firmware, take `main.py` from that release instead. Updating the firmware may also replace `main.py`. If the menu comes back after an update, copy `kiosk/main.py` over again.
+### Tufty: start-in-app mode
 
-## On a Tufty 2350
-
-Install exactly as for the Badger: the drive is called `TUFTY`, and the same `badger/mood_badger` folder goes in its `apps` folder. You need Tufty firmware **v3.1.1** or later ([releases](https://github.com/pimoroni/tufty2350/releases/latest)).
-
-The Tufty's screen is lit, so Mood Badger dims it after 10 seconds without a press (to about half on USB, about 15% on battery) and never turns it off. A press on a dimmed screen only brightens it; the next press changes the mood. The Tufty doesn't switch itself off: hold **RESET** until the case lights fade, and press any front button to turn it on again.
-
-A Tufty always opens Pimoroni's app list when it starts, so the normal setup is **start-in-app mode**: Mood Badger opens on power-on and RESET, and **HOME** still opens the app list. With the badge in disk mode:
+With the Tufty in disk mode:
 
 ```sh
 python3 -m tools.install --start-in-app --eject
 ```
 
-After the eject the Tufty restarts into the app list (the eject restarts it the way HOME does); press **RESET** once to open Mood Badger. From then on, power-on and RESET open Mood Badger.
+This replaces `main.py` with [`kiosk/start_in_app.py`](kiosk/start_in_app.py), which tells a **HOME** restart from any other start by the firmware's restart reason. Anything that restarts the badge the way **HOME** does also lands on the app list: the restart after an install, and `python3 -m tools.badge_info`. Press **RESET** once to get back to Mood Badger. The Badger doesn't need this mode (it already returns to Mood Badger when it wakes), so the installer refuses it there.
 
-This replaces `main.py` with [`kiosk/start_in_app.py`](kiosk/start_in_app.py), which tells a HOME restart from any other start by the firmware's restart reason. To undo it, run `python3 -m tools.install --menu --eject`, or copy the Tufty's stock file back:
+### Kiosk mode: Mood Badger only
+
+Kiosk mode works on both badges. With the badge in disk mode:
 
 ```sh
-cp -X vendor/tufty2350/firmware/main.py /Volumes/TUFTY/main.py
+python3 -m tools.install --kiosk --eject
 ```
 
-Kiosk mode (`--kiosk`, [above](#make-it-the-only-app)) works on a Tufty too, if the app list should never be shown.
+Or copy [`kiosk/main.py`](kiosk/main.py) over `main.py` yourself, after installing the app:
+
+```sh
+cp -X kiosk/main.py /Volumes/BADGER/main.py      # Badger
+cp -X kiosk/main.py /Volumes/TUFTY/main.py       # Tufty
+```
+
+Then eject the drive. What changes:
+
+- Power-on, **RESET**, **HOME** and (on the Badger) waking from sleep all start Mood Badger.
+- On a Tufty, kiosk mode replaces start-in-app mode: **HOME** no longer opens the app list.
+- The other apps stay on the drive but can't be reached from the badge. You can delete their folders from `apps/`; keep `apps/menu` if you might want the menu back.
+
+### Back to the menu
+
+```sh
+python3 -m tools.install --menu --eject
+```
+
+This restores that badge's own stock `main.py`. To do it by hand, copy the right one back in disk mode:
+
+```sh
+cp -X vendor/badger2350/firmware/main.py /Volumes/BADGER/main.py   # Badger
+cp -X vendor/tufty2350/firmware/main.py /Volumes/TUFTY/main.py     # Tufty
+```
+
+Those files are from firmware v3.1.1; if your badge runs a newer firmware, take `main.py` from that release instead.
 
 ## Controls
 
@@ -116,8 +136,8 @@ Kiosk mode (`--kiosk`, [above](#make-it-the-only-app)) works on a Tufty too, if 
 | **A** | Previous mood set, opening on its `initial` mood (the first by default). Does nothing with only one set |
 | **C** | Next mood set, opening on its `initial` mood (the first by default). Does nothing with only one set |
 | **B** | Not used |
-| **HOME** (back) | Return to the menu (restart Mood Badger when it is [the only app](#make-it-the-only-app)). Also the menu on a Tufty in [start-in-app mode](#on-a-tufty-2350) |
-| **RESET** (back) | Restart the badge into the menu (into Mood Badger when it is the only app, or on a Tufty in start-in-app mode). Hold it on a Tufty to power off |
+| **HOME** (back) | Return to the menu (restart Mood Badger in [kiosk mode](#kiosk-mode-mood-badger-only)) |
+| **RESET** (back) | Restart the badge: into the menu, or Mood Badger in kiosk mode and on a Tufty in start-in-app mode (see [What the badge opens](#what-the-badge-opens)). Hold it on a Tufty to power off |
 
 All five front buttons (A, B, C, UP and DOWN) are available to apps. HOME and RESET belong to the firmware.
 
@@ -139,7 +159,7 @@ The Tufty's screen needs its backlight to be seen, so Mood Badger never puts it 
 
 The first press on a dimmed screen only brightens it, so the child sees the current mood before changing it; the next press changes the mood. The press that turns the badge on works the same way.
 
-Because the screen stays lit, a Tufty on battery runs for hours rather than days (an estimate; not yet measured). Turn it off by holding **RESET** on the back until the case lights fade; any front button turns it on again, back in Mood Badger in start-in-app mode.
+Because the screen stays lit, a Tufty on battery runs for hours rather than days (an estimate; not yet measured). Turn it off by holding **RESET** on the back until the case lights fade; any front button turns it on again, back in Mood Badger in [start-in-app mode](#tufty-start-in-app-mode).
 
 ### Both
 

@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -50,3 +51,33 @@ def test_readme_explains_start_in_app_for_the_tufty():
     text = (ROOT / "README.md").read_text()
     assert "--start-in-app" in text
     assert "vendor/tufty2350/firmware/main.py" in text
+
+
+def _slug(heading):
+    # GitHub's heading anchors: lower case, punctuation dropped, spaces to hyphens.
+    return re.sub(r"[^\w\- ]", "", heading.strip().lower()).replace(" ", "-")
+
+
+def test_readme_internal_links_resolve():
+    text = (ROOT / "README.md").read_text()
+    anchors = {_slug(h) for h in re.findall(r"^#+ (.+)$", text, re.MULTILINE)}
+    links = set(re.findall(r"\]\(#([\w-]+)\)", text))
+    assert links and links <= anchors, links - anchors
+
+
+def _section(text, heading):
+    start = text.index(heading)
+    end = text.find("\n## ", start + 1)
+    return text[start:end if end > 0 else None]
+
+
+def test_readme_start_up_section_covers_both_badges_and_kiosk():
+    text = (ROOT / "README.md").read_text()
+    assert "## On a Tufty 2350" not in text, "start-up behaviour lives in one section"
+    section = _section(text, "## What the badge opens")
+    for needed in ("--start-in-app", "--kiosk", "--menu", "/Volumes/BADGER", "/Volumes/TUFTY",
+                   "vendor/badger2350/firmware/main.py", "vendor/tufty2350/firmware/main.py",
+                   "kiosk/main.py", "kiosk/start_in_app.py"):
+        assert needed in section, needed
+    kiosk = section[section.index("### Kiosk mode"):]
+    assert "start-in-app" in kiosk, "kiosk mode must say it replaces start-in-app on a Tufty"
