@@ -1,0 +1,47 @@
+# Lint, MicroPython syntax check, every test (host and simulator) and the
+# Markdown format check on each pull request and each push to main. The
+# same commands as the README's "Task | Command" table.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true # vendor/: Pimoroni's ruff rules and the simulator's firmware
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - uses: actions/setup-node@v4 # the simulator tests run under Node
+        with:
+          node-version: "20"
+
+      - name: Install tools
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (Pimoroni's ruff rules, ruff.toml)
+        run: ruff check --output-format github .
+
+      # kiosk/ is checked too: install copies one of its files to the
+      # badge as main.py.
+      - name: MicroPython syntax
+        run: find badger/mood_badger kiosk -name '*.py' -print0 | xargs -0 -n1 python -m mpy_cross -o /dev/null
+
+      - name: Tests (host and simulator)
+        run: pytest
+
+      # The same check as .githooks/pre-commit, for everyone: committed
+      # Markdown (git ls-files skips the vendor/ submodules) must be
+      # prettier-formatted. Keep the version in step with the hook.
+      - name: Markdown formatting (prettier)
+        run: git ls-files -z '*.md' | xargs -0 npx --yes prettier@3.9.10 --config .prettierrc.json --check

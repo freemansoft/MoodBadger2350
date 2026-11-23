@@ -1,0 +1,38 @@
+#!/bin/sh
+# Block a commit if any staged Markdown file isn't prettier-formatted.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Fix the files:           npx --yes prettier@3.9.10 --write <files>
+#
+# It checks the *staged* content, not the working copy, so a file that
+# is formatted on disk but staged unformatted is still caught. The
+# prettier version is pinned so everyone formats the same way; keep it
+# in step with the README and .github/workflows/ci.yml. (Copied from
+# freemansoft/dice-badgeware.)
+
+PRETTIER="prettier@3.9.10"
+
+root=$(git rev-parse --show-toplevel) || exit 1
+files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.md')
+[ -z "$files" ] && exit 0
+
+if ! command -v npx >/dev/null 2>&1; then
+  echo "pre-commit: npx not found; can't check Markdown formatting." >&2
+  echo "Install Node.js, or skip this check once with: git commit --no-verify" >&2
+  exit 1
+fi
+
+tmp=$(mktemp -d) || exit 1
+trap 'rm -rf "$tmp"' EXIT INT TERM
+
+# Copy the staged versions out, then check them with the repo's config.
+git diff --cached --name-only -z --diff-filter=ACMR -- '*.md' |
+  git checkout-index -z --stdin --prefix="$tmp/"
+
+if ! (cd "$tmp" && npx --yes "$PRETTIER" --config "$root/.prettierrc.json" --check .); then
+  echo "" >&2
+  echo "pre-commit: staged Markdown isn't prettier-formatted. Fix with:" >&2
+  echo "  npx --yes $PRETTIER --write $(echo "$files" | tr '\n' ' ')" >&2
+  echo "then git add the files again." >&2
+  exit 1
+fi

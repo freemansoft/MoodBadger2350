@@ -1,0 +1,18 @@
+# Lint rules for the whole repo: Pimoroni's own (the file their badge
+# firmware CI uses, identical in vendor/badger2350 and vendor/tufty2350),
+# so the app, boot files, tools, tests and simulator all follow the same
+# rules. Needs the submodules: git submodule update --init
+#
+#   .venv/bin/ruff check .
+extend = "vendor/badger2350/ci/ruff.toml"
+
+# The firmware is Pimoroni's to lint; sim/dist is a staged copy and
+# sim/wasm a built simulator.
+extend-exclude = ["vendor", "sim/dist", "sim/wasm"]
+
+[lint.per-file-ignores]
+# The fake Badgeware and test doubles copy real signatures, so they take
+# arguments they don't use.
+"tests/*" = ["ARG"]
+# Stand-ins for firmware modules keep the firmware's signatures.
+"sim/stubs/*" = ["ARG"]

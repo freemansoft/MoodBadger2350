@@ -4,7 +4,7 @@ from fake_badgeware import BUTTON_A, BUTTON_C, BUTTON_DOWN, BUTTON_UP, CHAR_WIDT
 
 import moods
 
-T = dict(model="tufty")
+T = {"model": "tufty"}
 IDLE = [set()] * 11          # 11 frames of 1000 ms: past DIM_AFTER_MS
 
 

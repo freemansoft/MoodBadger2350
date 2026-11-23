@@ -17,15 +17,15 @@ differences listed there.
 
 ## Which layers a change needs
 
-| Change | Layers |
-| --- | --- |
-| `moods.py` logic, config parsing | 1, 2 |
-| `__init__.py` (drawing, buttons, backlight, sleep) | 1-4, then 5 on both badges |
-| Layout numbers, pictures, labels, `config.json` | 1-4 (look at both pages), then 5 |
-| `kiosk/*.py` boot files | 1, then 5 with a wake-reason check |
-| `tools/*.py` | 1, then the tool once against a real badge |
-| `sim/` | 1, 3, 4 |
-| Firmware bump (`vendor/*`) | all, on both badges, after re-checking the `badgeware-platforms` table |
+| Change                                             | Layers                                                                 |
+| -------------------------------------------------- | ---------------------------------------------------------------------- |
+| `moods.py` logic, config parsing                   | 1, 2                                                                   |
+| `__init__.py` (drawing, buttons, backlight, sleep) | 1-4, then 5 on both badges                                             |
+| Layout numbers, pictures, labels, `config.json`    | 1-4 (look at both pages), then 5                                       |
+| `kiosk/*.py` boot files                            | 1, then 5 with a wake-reason check                                     |
+| `tools/*.py`                                       | 1, then the tool once against a real badge                             |
+| `sim/`                                             | 1, 3, 4                                                                |
+| Firmware bump (`vendor/*`)                         | all, on both badges, after re-checking the `badgeware-platforms` table |
 
 ## 1. Unit tests (seconds)
 
@@ -55,11 +55,17 @@ passes before the change tests nothing.
 
 ```bash
 for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done
-.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger
+.venv/bin/ruff check .
 ```
 
 CPython accepts things MicroPython doesn't; mpy-cross catches them. The
 ruff config lists Badgeware's builtins, so an undefined name is an error.
+`ruff.toml` extends Pimoroni's `vendor/badger2350/ci/ruff.toml` and covers
+the whole repository, not only the app.
+
+If the change touches Markdown, also run
+`npx --yes prettier@3.9.10 --config .prettierrc.json --check <files>`;
+CI and the pre-commit hook fail on unformatted Markdown.
 
 ## 3. Headless simulator (seconds per run)
 

@@ -256,7 +256,7 @@ def run_app(ticks, saved=None, config_text=None, files_missing=(), update_polls=
 
     def fatal_error(title, error):
         result.fatal = str(error)
-        raise _Stop()
+        raise _Stop
 
     def file_exists(path):
         return os.path.exists(path)
