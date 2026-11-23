@@ -321,6 +321,15 @@ def test_appledouble_files_are_removed(tmp_path):
     assert left == ["apps/mood_badger/__init__.py", "apps/mood_badger/assets/a.png"]
 
 
+def test_setting_main_removes_its_appledouble_file(tmp_path):
+    # macOS writes ._main.py beside main.py on the badge's FAT drive.
+    root = fake_drive(tmp_path)
+    (root / "._main.py").write_bytes(b"\0" * 4096)
+    install.set_main(root, install.KIOSK_MAIN)
+    assert not (root / "._main.py").exists()
+    assert (root / "main.py").read_text() == install.KIOSK_MAIN.read_text()
+
+
 def test_badge_info_restarts_the_badge_after_reading_it():
     # mpremote stops the running program; without a reset the badge sits
     # on a frozen screen until someone presses RESET.

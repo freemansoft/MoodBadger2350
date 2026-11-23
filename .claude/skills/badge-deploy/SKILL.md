@@ -111,7 +111,8 @@ folder at the drive's root (outside `apps/`, so the menu never lists
 it), compares every file with the source, then swaps it into
 `apps/mood_badger`. An interrupted copy leaves the old app in place. It
 leaves out `__pycache__` and `.pyc` files, deletes the `._` files
-macOS writes on FAT drives, prints `Start-up: <mode>`, and ejects.
+macOS writes on FAT drives (in the app, beside it and beside a new
+`main.py`), prints `Start-up: <mode>`, and ejects.
 
 Leave `main.py` alone unless the user asked about the start-up mode,
 or this is a Tufty's first install (see "Tufty 2350" below):
@@ -154,7 +155,9 @@ In this order:
    user what they see **before** the next step, which restarts the
    badge and would hide it.
 4. Check the copy from the badge's side:
-   `python3 -m tools.badge_check files`. It restarts the badge the same
+   `python3 -m tools.badge_check files`. It reports missing, changed or
+   extra files, and lists any `._` or `__pycache__` files as "macOS
+   junk" (if it finds any, reinstall). It restarts the badge the same
    way, so the user may need RESET again on a start-in-app Tufty.
 5. Ask the user to check the change they made, using the hand
    checklist for that badge in the `badge-verify` skill.
