@@ -1,0 +1,5 @@
+# GitHub language stats (linguist). The submodules under vendor/ are never
+# counted, but sim/wasm is Pimoroni's committed badgeware-wasm build (see
+# sim/wasm/SOURCE.md): without this its two micropython.mjs files make the
+# repo show as mostly JavaScript.
+sim/wasm/** linguist-vendored
