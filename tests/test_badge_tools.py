@@ -369,3 +369,127 @@ def test_start_in_app_eject_says_to_press_reset(tmp_path, monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "Start-up: start-in-app" in out
     assert "menu: press RESET once to open Mood Badger" in out
+
+
+# --- ported from claude-buddy-badgeware's tests/test_tools.py --------------------
+
+def test_badge_ports_with_nothing_connected():
+    assert rel.badge_ports("") == []
+
+
+def test_build_date_from_an_old_firmware_and_none():
+    # As read from a Tufty on old firmware.
+    assert rel.build_date("bw-1.27.0,   on 2026-04-10 (GNU 13.3.1 MinSizeRel)") == "2026-04-10"
+    assert rel.build_date(None) is None
+
+
+def test_firmware_status_unknown_without_a_publish_date():
+    assert rel.firmware_status("2026-09-23", "") == "unknown"
+
+
+def test_each_model_has_its_own_firmware_repo():
+    assert rel.repo_for("badger") == "pimoroni/badger2350"
+    assert rel.repo_for("tufty") == "pimoroni/tufty2350"
+
+
+def test_is_uf2_rejects_an_empty_file():
+    assert not rel.is_uf2(b"")
+
+
+def test_parse_info_without_the_marked_line_is_an_error():
+    with pytest.raises(ValueError):
+        badge_info.parse_info("Traceback ...")
+
+
+class FakeRun:
+    """Stands in for subprocess.run, recording each command."""
+
+    def __init__(self, returncode=0):
+        self.returncode = returncode
+        self.calls = []
+
+    def __call__(self, cmd, **_kwargs):
+        self.calls.append(cmd)
+        return type("Result", (), {"returncode": self.returncode})()
+
+
+@pytest.mark.parametrize("platform,cmd", [
+    ("darwin", ["diskutil", "eject", "/Volumes/BADGER"]),
+    ("linux", ["umount", "/Volumes/BADGER"]),
+])
+def test_eject_uses_the_platforms_command(monkeypatch, platform, cmd):
+    run = FakeRun()
+    monkeypatch.setattr(install.sys, "platform", platform)
+    monkeypatch.setattr(install.subprocess, "run", run)
+    assert install.eject(Path("/Volumes/BADGER"))
+    assert run.calls == [cmd]
+
+
+def test_eject_reports_a_failure(monkeypatch):
+    monkeypatch.setattr(install.sys, "platform", "darwin")
+    monkeypatch.setattr(install.subprocess, "run", FakeRun(returncode=1))
+    assert not install.eject(Path("/Volumes/BADGER"))
+
+
+def test_eject_on_windows_runs_nothing(monkeypatch):
+    run = FakeRun()
+    monkeypatch.setattr(install.sys, "platform", "win32")
+    monkeypatch.setattr(install.subprocess, "run", run)
+    assert not install.eject(Path("E:\\"))
+    assert run.calls == []
+
+
+def test_install_skips_a_loose_pyc_file(tmp_path):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    (src / "moods.pyc").write_bytes(b"pyc")
+    target = install.install_app(src, root)
+    assert sorted(p.name for p in target.iterdir()) == ["__init__.py", "assets"]
+    assert install.verify_copy(src, target) == []
+
+
+def test_a_failed_copy_check_leaves_the_old_app(tmp_path, monkeypatch):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    old = root / "apps" / "mood_badger"
+    old.mkdir()
+    (old / "__init__.py").write_text("old app")
+    monkeypatch.setattr(install, "verify_copy", lambda src, target: ["__init__.py"])
+    with pytest.raises(OSError):
+        install.install_app(src, root)
+    assert sorted(p.name for p in old.iterdir()) == ["__init__.py"]
+    assert (old / "__init__.py").read_text() == "old app"
+
+
+def test_a_failed_swap_puts_the_old_app_back(tmp_path, monkeypatch):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    old = root / "apps" / "mood_badger"
+    old.mkdir()
+    (old / "__init__.py").write_text("old app")
+    real_rename = Path.rename
+
+    def rename(path, dest):
+        if path == install.staging_dir(root):
+            raise OSError("rename failed")
+        return real_rename(path, dest)
+
+    monkeypatch.setattr(install.Path, "rename", rename)
+    with pytest.raises(OSError):
+        install.install_app(src, root)
+    assert (old / "__init__.py").read_text() == "old app"
+
+
+def test_a_leftover_old_copy_is_cleared(tmp_path):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    leftover = root / ".mood_badger.old" / "__init__.py"
+    leftover.parent.mkdir()
+    leftover.write_text("older")
+    install.install_app(src, root)
+    assert sorted(p.name for p in root.iterdir()) == ["apps", "main.py"]
+
+
+def test_verify_copy_catches_a_file_cut_to_one_fat_cluster(tmp_path):
+    src, copy = tmp_path / "src", tmp_path / "copy"
+    src.mkdir()
+    copy.mkdir()
+    (src / "__init__.py").write_text("x" * 5000)
+    (copy / "__init__.py").write_text("x" * 4096)
+    assert install.verify_copy(src, copy) == ["__init__.py"]

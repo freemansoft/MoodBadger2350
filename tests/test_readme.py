@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
     "https://shop.pimoroni.com/en-us/products/badger-2350?variant=55801169707387",
     "https://learn.pimoroni.com/article/badgeware-tube-status-app",
     "https://forums.pimoroni.com/t/migrating-a-badger2040-app-to-badger2350-moodbadger",
+    "https://youtu.be/w5cv0wWx-pk",
     "/apps/mood_badger", "v3.1.1",
 ])
 def test_readme_contains_reference(required):
@@ -85,7 +86,8 @@ def test_readme_start_up_section_covers_both_badges_and_kiosk():
 
 DOCS = ["README.md", "CLAUDE.md", "badger/mood_badger/README.md",
         ".claude/skills/badge-deploy/SKILL.md", ".claude/skills/badge-firmware/SKILL.md",
-        ".claude/skills/badge-verify/SKILL.md", ".claude/skills/badgeware-platforms/SKILL.md"]
+        ".claude/skills/badge-verify/SKILL.md", ".claude/skills/badgeware-platforms/SKILL.md",
+        ".claude/skills/mood-docs/SKILL.md"]
 
 
 def test_docs_call_pimoroni_launcher_the_menu_on_both_badges():
@@ -111,7 +113,8 @@ def test_readme_start_in_app_can_be_set_by_hand():
 
 
 def test_requirements_include_mpremote_for_the_badge_tools():
-    assert "mpremote" in (ROOT / "requirements-dev.txt").read_text().split()
+    lines = (ROOT / "requirements-dev.txt").read_text().split()
+    assert "mpremote" in {line.split("==")[0] for line in lines}
 
 
 def test_platform_skill_says_only_badger_home_resets_the_last_app():

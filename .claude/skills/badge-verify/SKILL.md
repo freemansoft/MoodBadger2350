@@ -63,9 +63,14 @@ ruff config lists Badgeware's builtins, so an undefined name is an error.
 `ruff.toml` extends Pimoroni's `vendor/badger2350/ci/ruff.toml` and covers
 the whole repository, not only the app.
 
+The pre-commit hook runs the same ruff and mpy-cross checks on the staged
+Python, so a commit can't skip them. The tools are pinned in
+`requirements-dev.txt`; if `.venv` has other versions, reinstall it.
+
 If the change touches Markdown, also run
-`npx --yes prettier@3.9.10 --config .prettierrc.json --check <files>`;
-CI and the pre-commit hook fail on unformatted Markdown.
+`npx --yes prettier@$(cat .prettier-version) --config .prettierrc.json --check <files>`;
+CI and the pre-commit hook fail on unformatted Markdown. The `mood-docs`
+skill has the rest of the Markdown standard.
 
 ## 3. Headless simulator (seconds per run)
 
@@ -91,6 +96,19 @@ sips -s format png /tmp/after.pgm --out /tmp/after.png   # macOS; then Read the 
 
 This is how the Tufty's off-white `color.white` was found: the tests
 passed, but the picture sat in a visible box.
+
+The builds are pinned in `sim/wasm/VERSION.json` (with the firmware tag
+each runs with). Before a firmware bump, or when the simulator and a real
+badge disagree, see whether Pimoroni has newer ones:
+
+```bash
+python3 -m tools.update_sim --check   # exits 1 if a newer build or firmware tag exists
+```
+
+It needs the GitHub CLI logged in and the network; `tests/test_update_sim.py`
+stubs both. Without `--check` it downloads the newest builds and moves the
+submodules: that is a firmware bump, so run every layer afterwards and
+follow `sim/wasm/SOURCE.md`.
 
 ## 4. Browser simulator (the user looks)
 

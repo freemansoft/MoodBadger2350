@@ -301,18 +301,19 @@ The [Blinky 2350](https://github.com/pimoroni/blinky2350) (LED matrix) runs the 
 git submodule update --init
 python3 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt
-git config core.hooksPath .githooks   # once per clone: check Markdown formatting before each commit
+git config core.hooksPath .githooks   # once per clone: check staged Markdown and Python before each commit
 ```
 
-The pre-commit hook needs Node.js (`npx`). GitHub Actions (`.github/workflows/ci.yml`) runs the lint, syntax, test and Markdown checks below on every pull request and push to `main`.
+The pre-commit hook checks what is staged: prettier on Markdown (it needs Node.js, `npx`), `ruff check` on Python, and mpy-cross on the app and `kiosk/` files (ruff and mpy-cross come from `.venv`). `requirements-dev.txt` pins each Python tool to an exact version and `.prettier-version` holds prettier's, so the checks give the same result on every machine. GitHub Actions (`.github/workflows/ci.yml`) runs the lint, syntax, test and Markdown checks below on every pull request and push to `main`.
 
 | Task                                     | Command                                                                                                 |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Run the tests                            | `.venv/bin/pytest`                                                                                      |
 | Check MicroPython syntax                 | `for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done` |
 | Lint with Pimoroni's rules (`ruff.toml`) | `.venv/bin/ruff check .`                                                                                |
-| Format Markdown                          | `npx --yes prettier@3.9.10 --write <files>`                                                             |
+| Format Markdown                          | `npx --yes prettier@$(cat .prettier-version) --write <files>`                                           |
 | Regenerate images                        | `.venv/bin/python -m tools.convert_moods`                                                               |
+| Check for newer simulator builds         | `python3 -m tools.update_sim --check`                                                                   |
 
 The app's logic is in `moods.py`, which has no Badgeware dependencies. `__init__.py` is the Badgeware layer, tested against a recording fake in `tests/fake_badgeware.py`.
 
@@ -343,7 +344,7 @@ python3 -m http.server -d sim/dist 8000
 
 Open <http://localhost:8000/> and choose the Badger (`/badger/`) or the Tufty (`/tufty/`). Arrow keys are UP and DOWN; `a`, `b`, `c` and `h` are A, B, C and HOME. The page always loads fresh app files, so after re-staging a normal reload shows your changes. `tests/test_sim.py` runs both builds headless under Node (`node sim/run_headless.mjs --model tufty ...`).
 
-The simulator shows layout, art, labels and navigation. It does not model sleep, waking, refresh time or how the e-paper looks, or the Tufty's battery power (it always dims to the USB level), so check those on a real badge. `sim/wasm/SOURCE.md` says where the wasm build came from and how to update it.
+The simulator shows layout, art, labels and navigation. It does not model sleep, waking, refresh time or how the e-paper looks, or the Tufty's battery power (it always dims to the USB level), so check those on a real badge. `sim/wasm/VERSION.json` pins the wasm builds and the firmware tags they run with, and `sim/wasm/SOURCE.md` says where the builds came from. `python3 -m tools.update_sim --check` compares the pin with Pimoroni's latest builds and releases (it needs the GitHub CLI, `gh`, logged in); without `--check` it downloads the newest builds and moves the firmware submodules to the latest release.
 
 ### Claude Code
 
@@ -355,7 +356,7 @@ The repository is set up for [Claude Code](https://claude.com/claude-code). `CLA
 | `skill-creator`        | Creating and improving project skills under `.claude/skills/`           |
 | `claude-md-management` | Checking `CLAUDE.md` against the code and saving what a session learned |
 
-Project skills in `.claude/skills/`: `badge-deploy` (install the app), `badge-firmware` (check and flash firmware), `badge-verify` (the [testing](#testing) layers and hand checklists) and `badgeware-platforms` (how the Badger and Tufty differ, with firmware references).
+Project skills in `.claude/skills/`: `badge-deploy` (install the app), `badge-firmware` (check and flash firmware), `badge-verify` (the [testing](#testing) layers and hand checklists), `badgeware-platforms` (how the Badger and Tufty differ, with firmware references) and `mood-docs` (the Markdown standard and which doc owns which topic).
 
 Personal permission rules, such as commands Claude may run without asking, go in `.claude/settings.local.json`, which is not committed.
 
