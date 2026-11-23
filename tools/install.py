@@ -164,8 +164,14 @@ def verify_copy(src, target):
 
 
 def set_main(root, main_py):
-    """Replace the drive's main.py with ``main_py`` (kiosk or stock)."""
+    """Replace the drive's main.py with ``main_py`` (kiosk or stock),
+    then delete the "._main.py" macOS writes beside it (see
+    remove_appledouble)."""
     shutil.copyfile(main_py, root / "main.py")
+    try:
+        (root / "._main.py").unlink()
+    except FileNotFoundError:
+        pass
 
 
 def eject(root):

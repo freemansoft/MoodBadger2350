@@ -127,7 +127,8 @@ Steps:
    instructions). Expect `Start-up:` as intended and "Ejected".
 3. Check the copy from the badge's side (macOS can hold writes until the
    eject, so the mounted drive can look right when the badge isn't):
-   `python3 -m tools.badge_check files`.
+   `python3 -m tools.badge_check files`. Expect no "missing", "different
+   size", "not in the app" or "macOS junk" (`._` or `__pycache__`) lines.
 4. Boot files or firmware changed: confirm the restart reasons. Run
    `python3 -m tools.badge_check wake-reason --after-restart 180` in the
    background and ask for a single RESET tap: expect `WAKE_RESET` (241).
