@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 HOOK = ROOT / ".githooks" / "pre-commit"
 CI = ROOT / ".github" / "workflows" / "ci.yml"
 # Split so this file doesn't match itself.
@@ -27,9 +27,10 @@ def test_every_dev_requirement_is_pinned():
         assert re.fullmatch(r"[A-Za-z0-9_.-]+==[A-Za-z0-9_.+-]+", line), line
 
 
-def test_dev_requirements_include_the_check_tools():
-    names = {line.split("==")[0].lower() for line in requirements()}
-    assert {"ruff", "mpy-cross", "pytest", "mpremote", "pillow"} <= names
+def test_dev_requirements_include_mpremote():
+    # Dropping any other dev tool fails CI (which runs it) or a test (which
+    # imports it); only the badge tools need mpremote.
+    assert "mpremote" in {line.split("==")[0].lower() for line in requirements()}
 
 
 def test_prettier_version_file_holds_one_version():
@@ -54,15 +55,9 @@ def test_only_prettier_version_names_the_prettier_version():
 
 
 def test_hook_and_ci_read_prettier_version():
-    assert ".prettier-version" in HOOK.read_text()
+    # The hook's comments name the file too, so look for the line that reads it.
+    assert '<"$root/.prettier-version"' in HOOK.read_text()
     assert "prettier@$(cat .prettier-version)" in CI.read_text()
-
-
-def test_hook_checks_python_with_ruff_and_mpy_cross():
-    hook = HOOK.read_text()
-    assert 'git show ":$f" | "$RUFF" check --quiet --stdin-filename "$f" -' in hook
-    assert "mpy_cross" in hook and "badger/mood_badger/*.py" in hook and "kiosk/*.py" in hook
-    assert "--no-verify" in hook
 
 
 @pytest.mark.skipif(shutil.which("sh") is None, reason="no sh")

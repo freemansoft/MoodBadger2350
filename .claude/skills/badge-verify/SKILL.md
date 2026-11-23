@@ -34,7 +34,7 @@ differences listed there.
 ```
 
 This includes layer 3 when `node` is installed. The app tests run the
-real `badger/mood_badger/__init__.py` against `tests/fake_badgeware.py`:
+real `badger/mood_badger/__init__.py` against `tests/app/fake_badgeware.py`:
 
 - `run_app(ticks, model="badger" | "tufty", usb=True | [per tick], frame_ms=1000, saved=..., config_text=..., files_missing=..., files_corrupt=..., blit_fails=...)`. Each tick is the set of buttons pressed that frame.
 - `model="tufty"` models the Tufty's `run()` (a clear before every
@@ -82,7 +82,7 @@ node sim/run_headless.mjs --model tufty --press DOWN --frames /tmp/out.json
 This runs the real firmware Python and the unmodified app in Pimoroni's
 badgeware-wasm builds (`sim/wasm/<model>/`). The JSON has `status`, `width`,
 `height`, and `before`/`after` frames as grey bytes. The tests in
-`tests/test_sim.py` check pixels in them. To look at a frame without a
+`tests/sim/test_sim.py` check pixels in them. To look at a frame without a
 browser, write it as an image and read it:
 
 ```bash
@@ -105,7 +105,7 @@ badge disagree, see whether Pimoroni has newer ones:
 python3 -m tools.update_sim --check   # exits 1 if a newer build or firmware tag exists
 ```
 
-It needs the GitHub CLI logged in and the network; `tests/test_update_sim.py`
+It needs the GitHub CLI logged in and the network; `tests/tools/test_update_sim.py`
 stubs both. Without `--check` it downloads the newest builds and moves the
 submodules: that is a firmware bump, so run every layer afterwards and
 follow `sim/wasm/SOURCE.md`.

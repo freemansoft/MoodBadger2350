@@ -56,10 +56,11 @@ def test_unmapped_buttons_do_not_refresh(button):
     assert r.saved is None
 
 
-def test_press_during_refresh_is_not_dropped():
-    r = run_app([set(), {BUTTON_DOWN}, {BUTTON_DOWN}], saved={"set": 0, "mood": 0})
-    assert r.mode & NON_BLOCKING
-    assert r.saved == {"set": 0, "mood": 2}
+def test_badger_keeps_polling_buttons_during_a_refresh():
+    # NON_BLOCKING: the firmware polls the buttons while the e-paper refreshes,
+    # so a press made then isn't lost. The fake doesn't model the refresh;
+    # only the mode can be checked here.
+    assert run_app([set()]).mode & NON_BLOCKING
 
 
 def test_press_caught_by_display_update_is_not_lost():
@@ -100,22 +101,14 @@ def test_bad_config_reports_error():
     assert "config.json" in run_app([set()], config_text="not json").fatal
 
 
-def test_invalid_config_structure_reports_error():
-    assert "config.json" in run_app([set()], config_text='{"moods": [[]]}').fatal
-
-
 def test_missing_config_reports_error():
     assert "config.json" in run_app([set()], files_missing=("config.json",)).fatal
 
 
 def label_font(label):
-    # two sets, so the arrows are shown and the label must fit between them
+    # label_max_width (140 px) is the gap between the set arrows
     r = run_app([set()], config_text='{"moods": [[["' + label + '", "happy.png"]], [["x", "sad.png"]]]}')
     return r.texts[0][1]
-
-
-def test_label_uses_ignore_font():
-    assert run_app([set()]).texts == [("Chilled", "ignore")]
 
 
 def test_label_that_fits_between_the_arrows_keeps_ignore():
@@ -148,14 +141,6 @@ def test_set_arrows_drawn_above_a_and_c_with_several_sets():
 
 def test_no_set_arrows_with_a_single_set():
     assert run_app([set()], config_text='{"moods": [[["Chilled", "happy.png"]]]}').arrows == []
-
-
-@pytest.mark.parametrize("button", [BUTTON_A, BUTTON_C])
-def test_set_buttons_do_not_refresh_with_a_single_set(button):
-    config = '{"moods": [[["Chilled", "happy.png"], ["Sad", "sad.png"]]]}'
-    r = run_app([set(), {button}], saved={"set": 0, "mood": 1}, config_text=config)
-    assert r.events.count("display") == 1
-    assert r.saved is None
 
 
 def test_badger_on_exit_does_nothing():

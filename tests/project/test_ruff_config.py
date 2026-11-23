@@ -6,7 +6,7 @@ follow (see ruff.toml). (Adapted from freemansoft/dice-badgeware.)"""
 import tomllib
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 
 VENDOR_RULES = ["vendor/badger2350/ci/ruff.toml", "vendor/tufty2350/ci/ruff.toml"]
 

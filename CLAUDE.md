@@ -5,10 +5,10 @@ Mood Badger: a MicroPython Badgeware app for the Pimoroni Badger 2350 (e-ink) an
 ## Development
 
 - Set up: `git submodule update --init`, then `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`, then `git config core.hooksPath .githooks` (the pre-commit hook checks staged Markdown with prettier, runs `ruff check` on staged Python, and compiles staged `badger/mood_badger` and `kiosk` files with mpy-cross)
-- Dev tools are pinned: every line of `requirements-dev.txt` is `==` (`tests/test_dev_tools.py` checks), and prettier's version is only in `.prettier-version`. Bump a pin on purpose, then rerun every check
+- Dev tools are pinned: every line of `requirements-dev.txt` is `==` (`tests/project/test_dev_tools.py` checks), and prettier's version is only in `.prettier-version`. Bump a pin on purpose, then rerun every check
 - Test: `.venv/bin/pytest` (includes a headless simulator run when `node` is installed)
 - MicroPython syntax: `for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done` (the `kiosk/` boot files go on the badge too)
-- Lint: `.venv/bin/ruff check .` (`ruff.toml` extends Pimoroni's `vendor/badger2350/ci/ruff.toml`; `tests/test_ruff_config.py` fails if the Tufty's copy ever differs). `ruff format` is not used: Pimoroni's firmware CI only runs `ruff check`, and the formatter would rewrite most files
+- Lint: `.venv/bin/ruff check .` (`ruff.toml` extends Pimoroni's `vendor/badger2350/ci/ruff.toml`; `tests/project/test_ruff_config.py` fails if the Tufty's copy ever differs). `ruff format` is not used: Pimoroni's firmware CI only runs `ruff check`, and the formatter would rewrite most files
 - Markdown: `npx --yes prettier@$(cat .prettier-version) --config .prettierrc.json --write <files>`; the version is only in `.prettier-version`, which the hook and CI read. The `mood-docs` skill has the rest of the Markdown standard
 - CI (`.github/workflows/ci.yml`) runs the lint, MicroPython syntax, tests and Markdown checks on every PR and push to `main`
 - Simulator: `python3 sim/stage.py && python3 -m http.server -d sim/dist 8000`, then `/badger/` or `/tufty/`. Headless: `node sim/run_headless.mjs --model tufty --press DOWN --frames out.json`. `python3 -m tools.update_sim --check` compares the pinned wasm builds and firmware tags (`sim/wasm/VERSION.json`) with Pimoroni's latest (needs `gh` and the network); without `--check` it downloads them (see `sim/wasm/SOURCE.md`)

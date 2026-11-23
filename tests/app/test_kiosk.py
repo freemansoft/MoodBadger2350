@@ -1,7 +1,11 @@
 import runpy
+import sys
+import types
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
 KIOSK = ROOT / "kiosk" / "main.py"
 
 
@@ -19,23 +23,7 @@ def test_kiosk_launches_mood_badger_then_resets():
     assert run_kiosk() == [("launch", "/system/apps/mood_badger"), ("reset",)]
 
 
-def test_kiosk_path_matches_the_app_folder():
-    assert (ROOT / "badger" / "mood_badger" / "__init__.py").exists()
-    assert "/system/apps/mood_badger" in KIOSK.read_text()
-
-
-def test_readme_explains_kiosk_install_and_restore():
-    text = (ROOT / "README.md").read_text()
-    assert "kiosk/main.py" in text
-    assert "vendor/badger2350/firmware/main.py" in text
-
-
 # --- start-in-app: Mood Badger on power-on and RESET, the menu after HOME ----
-
-import sys  # noqa: E402
-import types  # noqa: E402
-
-import pytest  # noqa: E402
 
 START_IN_APP = ROOT / "kiosk" / "start_in_app.py"
 

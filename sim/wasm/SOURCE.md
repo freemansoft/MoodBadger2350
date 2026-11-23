@@ -9,7 +9,7 @@ from the same run, committed here because GitHub deletes CI artifacts after
 
 `VERSION.json` is the machine-readable pin (build commit, run and date, and
 each badge's firmware tag) that `tools/update_sim.py` reads and writes. This
-file is the record for people; `tests/test_update_sim.py` checks that the two
+file is the record for people; `tests/tools/test_update_sim.py` checks that the two
 name the same build.
 
 |                 |                                            |

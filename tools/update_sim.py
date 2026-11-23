@@ -15,7 +15,7 @@ with the artifact ids and the host contract.
 
 Needs the GitHub CLI, logged in (gh auth login), and the network.
 Standard library only. After updating: bring sim/wasm/SOURCE.md up to
-date (tests/test_update_sim.py checks it agrees with VERSION.json), run
+date (tests/tools/test_update_sim.py checks it agrees with VERSION.json), run
 .venv/bin/pytest, then commit sim/wasm and vendor/.
 
 (Adapted from freemansoft/dice-badgeware.)

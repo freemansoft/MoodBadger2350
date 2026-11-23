@@ -9,7 +9,7 @@ description: Writing and formatting standard for Mood Badger's Markdown (README.
 
 ## Formatting: prettier, pinned
 
-All Markdown is formatted with prettier at the version in `.prettier-version`, with the settings in `.prettierrc.json` (`proseWrap: preserve`). The version lives only in that file, so everyone's tables and lists come out byte-identical; an unpinned `npx prettier` can reformat files nobody touched. `tests/test_dev_tools.py` fails if any other file writes the version number after `prettier@`, so in docs write `prettier@$(cat .prettier-version)`.
+All Markdown is formatted with prettier at the version in `.prettier-version`, with the settings in `.prettierrc.json` (`proseWrap: preserve`). The version lives only in that file, so everyone's tables and lists come out byte-identical; an unpinned `npx prettier` can reformat files nobody touched. `tests/project/test_dev_tools.py` fails if any other file writes the version number after `prettier@`, so in docs write `prettier@$(cat .prettier-version)`.
 
 After editing Markdown, and before committing:
 
@@ -43,7 +43,7 @@ Other layout rules:
 The README and the app's README are for people setting up a badge for a child, often not programmers. Write plain, short sentences.
 
 - British spelling, matching the existing docs: _colour_, _behaviour_, _licence_ (the noun), _customising_.
-- One word for one thing: Pimoroni's launcher is always "the menu", never another name (`tests/test_readme.py` checks every doc it lists for the old one). The badges are "Badger 2350" and "Tufty 2350", or "Badger" and "Tufty" once that's clear.
+- One word for one thing: Pimoroni's launcher is always "the menu", never another name (`tests/project/test_docs.py` checks every doc it lists for the old one). The badges are "Badger 2350" and "Tufty 2350", or "Badger" and "Tufty" once that's clear.
 - Say what happens, with the number: "sleeps after 5 seconds on battery", "dims after 10 seconds".
 - Be honest about what's unverified. Anything not yet seen on a real badge says so ("not yet measured", "haven't been seen on a badge"), and the `badgeware-platforms` skill keeps the record of what was checked on hardware.
 - Explain why, briefly, when a choice isn't obvious.
@@ -75,16 +75,16 @@ When you change a number (a timeout, the firmware version, the 16-mood limit, th
 ## Links and anchors
 
 - Link between docs with relative paths (`kiosk/main.py`, `badger/mood_badger/README.md`).
-- Renaming a heading changes its anchor. Before renaming, grep the repo for `#<old-anchor>` and fix every link; `tests/test_readme.py` fails on a README link to a missing heading.
-- External references go in the README's References section, with what each one is used for, and in the URL list in `tests/test_readme.py`.
+- Renaming a heading changes its anchor. Before renaming, grep the repo for `#<old-anchor>` and fix every link; `tests/project/test_docs.py` fails on a README link to a missing heading.
+- External references go in the README's References section, with what each one is used for.
 
 ## Tests that pin doc content
 
 Docs are tested like code; run `.venv/bin/pytest -q` after a doc change.
 
-- `tests/test_readme.py`: the README's references, sections, install commands and internal links; the app README; licence text; the name of the menu.
-- `tests/test_platform_skill.py`: the `badgeware-platforms` front matter, and that every `vendor/` path it cites exists.
-- `tests/test_update_sim.py`: `sim/wasm/SOURCE.md` names the same build as `VERSION.json`.
-- `tests/test_dev_tools.py`: no file other than `.prettier-version` names the prettier version.
+- `tests/project/test_docs.py`: the README's Mac copy command and internal links; the licence text; the name of the menu; and that every `vendor/`, `tests/`, `tools/`, `sim/`, `kiosk/` and `badger/` file and every `python3 -m tools.<name>` that the README, `CLAUDE.md`, the app README, `sim/wasm/SOURCE.md` and the skills cite exists. Move or rename a file, and the docs that cite it fail here.
+- `tests/project/test_skills.py`: every skill's front matter names its folder and has a description.
+- `tests/tools/test_update_sim.py`: `sim/wasm/SOURCE.md` names the same build as `VERSION.json`.
+- `tests/project/test_dev_tools.py`: no file other than `.prettier-version` names the prettier version.
 
 If a test fails because a doc was deliberately changed, update the test in the same change.
