@@ -24,7 +24,7 @@ jobs:
 
       - uses: actions/setup-node@v7 # the simulator tests run under Node
         with:
-          node-version: "20"
+          node-version: "26"
 
       - name: Install tools
         run: pip install -r requirements-dev.txt
