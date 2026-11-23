@@ -6,6 +6,8 @@ The same app also runs on the colour-screen [Tufty 2350](https://github.com/pimo
 
 Mood Badger 2350 is a port of Simon Painter's [MoodBadger](https://github.com/simonpainter/MoodBadger) for the original Badger 2040, a project I was fortunate to contribute to.
 
+Video: [Mood Badger: a mood display for neurodivergent kids on Pimoroni Badger 2350 and Tufty 2350](https://youtu.be/w5cv0wWx-pk) on YouTube.
+
 ![Mood Badger showing every mood and set in the simulator](docs/images/sim-tour.png)
 
 ## Badger or Tufty
