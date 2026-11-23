@@ -38,6 +38,7 @@
 ### Task 1: Vendor the Tufty firmware and add the `badgeware-platforms` skill
 
 **Files:**
+
 - Create: `vendor/tufty2350` (git submodule, `https://github.com/pimoroni/tufty2350`, checked out at tag `v3.1.1`)
 - Modify: `.gitmodules`
 - Create: `.claude/skills/badgeware-platforms/SKILL.md`
@@ -46,6 +47,7 @@
 - Test: `tests/test_platform_skill.py`
 
 **Interfaces:**
+
 - Produces: `vendor/tufty2350/...` paths used by Tasks 4 and 5 (`vendor/tufty2350/firmware/main.py`, `vendor/tufty2350/modules/common/badgeware`, `vendor/tufty2350/romfs/fonts`).
 
 - [ ] **Step 1: Add the submodule**
@@ -100,6 +102,7 @@ Expected: FAIL (skill file missing).
 - [ ] **Step 4: Write `.claude/skills/badgeware-platforms/SKILL.md`**
 
 Frontmatter `name: badgeware-platforms`; a pushy description: load it whenever writing, changing, reviewing or planning Mood Badger app code (or any Badgeware app) that runs on a Badger 2350 or Tufty 2350, porting between them, or debugging something that works on one badge but not the other, even if the user only says "make it work on the Tufty". Body:
+
 - The difference table from the spec's "Constraints and facts" section, with every Source cell rewritten as a full `vendor/badger2350/...` or `vendor/tufty2350/...` path (e.g. `vendor/tufty2350/modules/common/badgeware/__init__.py`, `vendor/tufty2350/modules/c/powman/bindings.c`, `vendor/tufty2350/firmware/apps/menu/__init__.py`).
 - Rows the spec table lacks: Tufty menu always starts at the first app (`active = 0`) and lists apps alphabetically; on the Tufty HOME is also BOOT, so a restart while HOME is held enters the bootloader (`reset()` waits for release); the waking button press reaches the first `badge.poll()` (`vendor/tufty2350/modules/c/input/input.cpp`), and the stock Tufty `main.py` eats it.
 - Rules for app code that follow (one line each, with the why): never assume the screen keeps its image; on the Tufty draw every frame because `run()` clears first; cache decoded images; save state before refreshing or sleeping; branch on `badge.model`, never on drive names; guard Badger-only names.
@@ -124,10 +127,12 @@ git commit -m "feat: vendor tufty2350 v3.1.1 and add badgeware-platforms skill"
 ### Task 2: Per-model layout and backlight rules in `moods.py`
 
 **Files:**
+
 - Modify: `badger/mood_badger/moods.py`
 - Test: `tests/test_moods.py`
 
 **Interfaces:**
+
 - Produces (all in `moods.py`):
   - `BADGER` and `TUFTY`: dicts with keys `screen_w, screen_h, image_pos, image_size, label_centre_x, label_max_width, arrow_a_x, arrow_c_x, arrow_mid_y, arrow_half, pip_x, pip_size, pip_spacing`.
   - `LAYOUTS = {"badger": BADGER, "tufty": TUFTY}`
@@ -138,6 +143,7 @@ git commit -m "feat: vendor tufty2350 v3.1.1 and add badgeware-platforms skill"
 - Existing module constants (`PIP_X`, `PIP_SIZE`, `PIP_SPACING`, `SCREEN_WIDTH`, `SCREEN_HEIGHT`, `ARROW_A_X`, `ARROW_C_X`, `ARROW_MID_Y`, `ARROW_HALF`) stay, equal to the `BADGER` values, so existing tests and the Badger path are unchanged.
 
 Values:
+
 - `BADGER`: `screen_w 264, screen_h 176, image_pos (61, 2), image_size (122, 136), label_centre_x 122, label_max_width 140, arrow_a_x 43, arrow_c_x 210, arrow_mid_y 157, arrow_half 5, pip_x 250, pip_size 8, pip_spacing 10`.
 - `TUFTY` (320x240, picture scaled 1.5x to 183x204): `screen_w 320, screen_h 240, image_pos (59, 4), image_size (183, 204), label_centre_x 150, label_max_width 170, arrow_a_x 52, arrow_c_x 255, arrow_mid_y 224, arrow_half 7, pip_x 300, pip_size 10, pip_spacing 13`. (Arrow x = Badger's scaled by 320/264; check against the real buttons in Task 6.)
 
@@ -205,18 +211,21 @@ git commit -m "feat: per-model layouts and Tufty backlight rules in moods.py"
 ### Task 3: The Tufty code path in the app
 
 **Files:**
+
 - Modify: `badger/mood_badger/__init__.py`
 - Modify: `tests/fake_badgeware.py`
 - Create: `tests/test_app_tufty.py`
 - Modify: `badger/mood_badger/README.md` (Tufty controls, dimming, "hold RESET until the case lights fade to power off")
 
 **Interfaces:**
+
 - Consumes: `moods.LAYOUTS`, `moods.TUFTY`, `moods.set_arrows(n, layout)`, `moods.pip_positions(n, layout)`, `moods.backlight_level`, `moods.DIM_AFTER_MS`, `moods.BRIGHT`.
 - Produces:
   - `on_exit()` defined at module level in `__init__.py` **before** `run(...)` (Badgeware's `launch()` calls it when HOME is pressed): on the Tufty sets `display.backlight(1.0)`; on the Badger does nothing.
   - `run_app(ticks, ..., model="badger", usb=True, frame_ms=1000)` in the fake. With `model="tufty"`: no `NON_BLOCKING`, `wait_for_button_or_alarm` or `badge.first_update` in the injected globals/badge; `run()` calls `screen.clear()` before every `update()` and records `"display"` after it, like the Tufty's `_run`; `badge.ticks` advances by `frame_ms` per tick; `badge.usb_connected()` returns `usb`, which may be a list (one value per tick); a `display` fake records `backlight(v)` calls in `result.backlight`; `rect(x, y, w, h)` and `HIRES`, `VSYNC` exist; `screen.blit(img, r)` records `r` in `result.blit_rects`; `image.load` calls counted in `result.loads`; `result.exit` holds the module's `on_exit` (read from the run globals after the app returns).
 
 Tufty behaviour to implement (Badger branch is the existing code, moved under `if badge.model != "tufty":` unchanged):
+
 - `badge.mode(HIRES | VSYNC)`; `layout = moods.LAYOUTS["tufty"]`.
 - Per frame: first frame ignores presses; otherwise if `moods.backlight_level(idle, usb) < moods.BRIGHT` any press only resets the idle timer; otherwise apply `moods.apply_input(...)` and save state on change (before drawing).
 - Call `display.backlight(level)` only when the level changes.
@@ -347,6 +356,7 @@ git commit -m "feat: run Mood Badger on the Tufty 2350 with a dimming backlight"
 ### Task 4: Start-in-app boot file and Tufty-aware tools
 
 **Files:**
+
 - Create: `kiosk/start_in_app.py`
 - Modify: `kiosk/main.py` (comment only: works on both badges; restore the stock file for that model)
 - Modify: `tools/install.py`, `tools/badge_info.py`
@@ -355,6 +365,7 @@ git commit -m "feat: run Mood Badger on the Tufty 2350 with a dimming backlight"
 - Test: `tests/test_kiosk.py`, `tests/test_badge_tools.py`, `tests/test_readme.py`
 
 **Interfaces:**
+
 - Consumes: `vendor/tufty2350/firmware/main.py` (Task 1).
 - Produces:
   - `install.APPS = {"badger": ROOT/"badger"/APP, "tufty": ROOT/"badger"/APP}`
@@ -384,12 +395,14 @@ reset()
 - [ ] **Step 1: Write the failing tests**
 
 In `tests/test_kiosk.py` (run the file with `runpy`, a fake `powman` in `sys.modules`, and fake `launch`, `reset`, `badge`):
+
 - `test_start_in_app_opens_mood_badger_after_reset_or_power_on` — for each of `WAKE_RESET`, `WAKE_BUTTON_DOWN`, `WAKE_VBUS_DETECT`, `WAKE_UNKNOWN`: calls == `[("launch", "/system/apps/mood_badger"), ("reset",)]`, and `badge.poll` not called (the app ignores the waking press itself).
 - `test_start_in_app_opens_menu_after_home` — `WAKE_WATCHDOG`, menu `launch` returns `"/system/apps/clock"`: calls == `[("launch", "/system/apps/menu"), ("launch", "/system/apps/clock"), ("reset",)]` and `badge.poll` was called before the first launch.
 - `test_start_in_app_menu_returning_none_just_resets` — menu returns `None`: `[("launch", "/system/apps/menu"), ("reset",)]`.
 - `test_start_in_app_menu_flow_matches_the_stock_tufty_main` — `vendor/tufty2350/firmware/main.py` still contains `launch("/system/apps/menu")` and `badge.pressed() or badge.held() or badge.released()` (guards against a firmware bump changing the flow we copied).
 
 In `tests/test_badge_tools.py`:
+
 - `test_boot_mode_of_each_known_file` — parametrize: `kiosk/main.py` → `"kiosk"`, `kiosk/start_in_app.py` → `"start-in-app"`, both `STOCK_MAINS` → `"menu"`.
 - `test_boot_mode_reports_custom_main_py` — `'print("hi")\n'` → `"custom"`; the stock Badger file with an extra line appended → `"custom"`.
 - `test_tufty_drive_installs_the_same_app` — `install.APPS["tufty"] == install.APPS["badger"]`; `model_for_drive(Path("/Volumes/TUFTY")) == "tufty"`.
@@ -423,11 +436,13 @@ git commit -m "feat: start-in-app boot file and Tufty support in the install too
 ### Task 5: Tufty in the simulator
 
 **Files:**
+
 - Move: `sim/wasm/micropython.{mjs,wasm}` → `sim/wasm/badger/`; add `sim/wasm/tufty/micropython.{mjs,wasm}`; update `sim/wasm/SOURCE.md` (both artifacts, same run 35841227054)
 - Modify: `sim/stage.py`, `sim/boot.py`, `sim/index.html`, `sim/run_headless.mjs`, `tests/test_sim.py`, `CLAUDE.md` (Simulator line), `README.md` (simulator section)
 - Create: `sim/dist/index.html` is generated, not committed (landing page with links to `badger/` and `tufty/`)
 
 **Interfaces:**
+
 - Produces:
   - `stage.stage(model: str) -> int` stages into `sim/dist/<model>/` from `vendor/<model>2350`, `sim/wasm/<model>/`; `python3 sim/stage.py` stages both and writes the landing page.
   - `node sim/run_headless.mjs --model <badger|tufty> --press <BUTTON> --frames <out.json>`; output adds `"width"` and `"height"`.

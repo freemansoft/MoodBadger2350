@@ -29,8 +29,14 @@ Edit `config.json` in this folder. `moods` is a list of mood sets; each mood is 
 ```json
 {
   "moods": [
-    [["Chilled", "fig_chilled.png"], ["Sad", "fig_sad.png"]],
-    [["Agree", "thumb_up.png"], ["Disagree", "thumb_down.png"]]
+    [
+      ["Chilled", "fig_chilled.png"],
+      ["Sad", "fig_sad.png"]
+    ],
+    [
+      ["Agree", "thumb_up.png"],
+      ["Disagree", "thumb_down.png"]
+    ]
   ],
   "initial": [0, 0]
 }

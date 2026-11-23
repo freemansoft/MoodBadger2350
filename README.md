@@ -12,16 +12,16 @@ Mood Badger 2350 is a port of Simon Painter's [MoodBadger](https://github.com/si
 
 One app folder, `badger/mood_badger`, runs on both badges with the same moods, pictures and buttons. It checks which badge it is on when it starts. Each badge keeps its own saved mood.
 
-| | Badger 2350 | Tufty 2350 |
-| --- | --- | --- |
-| Screen | 264×176 e-ink; keeps showing the mood with the power off | 320×240 colour LCD with a backlight; pictures shown 1.5× larger, in the same black and white |
-| Pressing a button | The screen takes a moment to change; hold the button until it does | Changes at once, unless the screen is dimmed (below) |
-| When left alone | Sleeps after 5 seconds on battery; never on USB | Dims after 10 seconds: to about half on USB, about 15% on battery. Never goes dark and never sleeps |
-| The first press after that | Wakes the badge **and** moves one mood | Only brightens the screen; the next press changes the mood |
-| Battery | Lasts a long time: power is only used when the mood changes | Hours rather than days, because the screen is lit and redrawn continuously (not yet measured) |
-| Turning it off | Not needed; it sleeps by itself | Hold **RESET** until the case lights fade; any front button turns it on |
-| What it opens at start-up | Waking from sleep returns to Mood Badger; RESET opens the menu | Pimoroni's menu, unless installed in start-in-app mode. See [What the badge opens](#what-the-badge-opens) |
-| Disk-mode drive | `BADGER` | `TUFTY` |
+|                            | Badger 2350                                                        | Tufty 2350                                                                                                |
+| -------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Screen                     | 264×176 e-ink; keeps showing the mood with the power off           | 320×240 colour LCD with a backlight; pictures shown 1.5× larger, in the same black and white              |
+| Pressing a button          | The screen takes a moment to change; hold the button until it does | Changes at once, unless the screen is dimmed (below)                                                      |
+| When left alone            | Sleeps after 5 seconds on battery; never on USB                    | Dims after 10 seconds: to about half on USB, about 15% on battery. Never goes dark and never sleeps       |
+| The first press after that | Wakes the badge **and** moves one mood                             | Only brightens the screen; the next press changes the mood                                                |
+| Battery                    | Lasts a long time: power is only used when the mood changes        | Hours rather than days, because the screen is lit and redrawn continuously (not yet measured)             |
+| Turning it off             | Not needed; it sleeps by itself                                    | Hold **RESET** until the case lights fade; any front button turns it on                                   |
+| What it opens at start-up  | Waking from sleep returns to Mood Badger; RESET opens the menu     | Pimoroni's menu, unless installed in start-in-app mode. See [What the badge opens](#what-the-badge-opens) |
+| Disk-mode drive            | `BADGER`                                                           | `TUFTY`                                                                                                   |
 
 ## Install
 
@@ -51,12 +51,12 @@ Keep the trailing `/` on `badger/mood_badger/`, so rsync copies the folder's con
 
 The repository's `tools/` has four scripts for a badge on USB. Run them from the repository root with Python 3; they work on macOS, Linux and Windows. All but `install` talk to the badge over USB with `mpremote` (`pip install mpremote`; the development setup below installs it). `--eject` works on macOS and Linux; on Windows, eject the drive from Explorer.
 
-| Command | Badge mode | What it does |
-| --- | --- | --- |
-| `python3 -m tools.badge_info` | Normal (press **RESET** once) | Shows the model, whether the firmware is the latest release, whether Mood Badger is installed and what the badge starts up into (the menu, kiosk or start-in-app). Interrupts the running app to read the badge, then restarts it |
-| `python3 -m tools.install --eject` | Disk (double-tap **RESET**) | Copies only the app's files, removes files the app no longer has, checks the copy and ejects. Add `--start-in-app` (Tufty), `--kiosk` or `--menu` to set [what the badge opens](#what-the-badge-opens) |
+| Command                                                                               | Badge mode                                                    | What it does                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `python3 -m tools.badge_info`                                                         | Normal (press **RESET** once)                                 | Shows the model, whether the firmware is the latest release, whether Mood Badger is installed and what the badge starts up into (the menu, kiosk or start-in-app). Interrupts the running app to read the badge, then restarts it           |
+| `python3 -m tools.install --eject`                                                    | Disk (double-tap **RESET**)                                   | Copies only the app's files, removes files the app no longer has, checks the copy and ejects. Add `--start-in-app` (Tufty), `--kiosk` or `--menu` to set [what the badge opens](#what-the-badge-opens)                                      |
 | `python3 -m tools.flash_firmware --model badger --firmware-only` (or `--model tufty`) | Bootloader (hold **BOOT**, tap **RESET**, let go of **BOOT**) | Downloads the latest firmware for that model and flashes it, keeping apps and files. Use the model `badge_info` reports: the other model's firmware won't run. `--with-filesystem` instead resets every app and file to Pimoroni's defaults |
-| `python3 -m tools.badge_check files` | Normal | After an install, checks that the app on the badge matches this repository. `wake-reason` shows why the badge last restarted. Both restart the badge afterwards |
+| `python3 -m tools.badge_check files`                                                  | Normal                                                        | After an install, checks that the app on the badge matches this repository. `wake-reason` shows why the badge last restarted. Both restart the badge afterwards                                                                             |
 
 Each takes `--wait SECONDS`, which keeps looking for the badge that long, so you can start the command and then press the buttons.
 
@@ -71,13 +71,13 @@ Both badges start up in Pimoroni's menu of apps unless told otherwise. What each
 
 **Kiosk mode** goes one step further on either badge: Mood Badger is the only app, and the menu is never shown.
 
-| | Badger (stock) | Tufty, start-in-app | Tufty (stock) | Kiosk mode (either) |
-| --- | --- | --- | --- | --- |
-| Install option | none (`--menu` to go back) | `--start-in-app` | none (`--menu` to go back) | `--kiosk` |
-| Power-on, or waking | Last app used (Mood Badger) | Mood Badger | Menu | Mood Badger |
-| **RESET** | Menu | Mood Badger | Menu | Mood Badger |
-| **HOME** | Menu | Menu | Menu | Mood Badger |
-| After installing with the tools | Last app used* | Menu: press **RESET** once | Menu | Mood Badger* |
+|                                 | Badger (stock)              | Tufty, start-in-app        | Tufty (stock)              | Kiosk mode (either) |
+| ------------------------------- | --------------------------- | -------------------------- | -------------------------- | ------------------- |
+| Install option                  | none (`--menu` to go back)  | `--start-in-app`           | none (`--menu` to go back) | `--kiosk`           |
+| Power-on, or waking             | Last app used (Mood Badger) | Mood Badger                | Menu                       | Mood Badger         |
+| **RESET**                       | Menu                        | Mood Badger                | Menu                       | Mood Badger         |
+| **HOME**                        | Menu                        | Menu                       | Menu                       | Mood Badger         |
+| After installing with the tools | Last app used*              | Menu: press **RESET** once | Menu                       | Mood Badger*        |
 
 Checked on real badges: the whole start-in-app column, and power-on, waking and **HOME** on a Badger. Cells marked \* come from the firmware source and haven't been seen on a badge, and kiosk mode hasn't been tried on a Tufty. The `badgeware-platforms` Claude Code skill keeps the record of what was checked.
 
@@ -137,14 +137,14 @@ Those files are from firmware v3.1.1; if your badge runs a newer firmware, take 
 
 ## Controls
 
-| Button | Action |
-| --- | --- |
-| **UP** | Previous mood |
-| **DOWN** | Next mood |
-| **A** | Previous mood set, opening on its `initial` mood (the first by default). Does nothing with only one set |
-| **C** | Next mood set, opening on its `initial` mood (the first by default). Does nothing with only one set |
-| **B** | Not used |
-| **HOME** (back) | Return to the menu (restart Mood Badger in [kiosk mode](#kiosk-mode-mood-badger-only)) |
+| Button           | Action                                                                                                                                                                                  |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **UP**           | Previous mood                                                                                                                                                                           |
+| **DOWN**         | Next mood                                                                                                                                                                               |
+| **A**            | Previous mood set, opening on its `initial` mood (the first by default). Does nothing with only one set                                                                                 |
+| **C**            | Next mood set, opening on its `initial` mood (the first by default). Does nothing with only one set                                                                                     |
+| **B**            | Not used                                                                                                                                                                                |
+| **HOME** (back)  | Return to the menu (restart Mood Badger in [kiosk mode](#kiosk-mode-mood-badger-only))                                                                                                  |
 | **RESET** (back) | Restart the badge: into the menu, or Mood Badger in kiosk mode and on a Tufty in start-in-app mode (see [What the badge opens](#what-the-badge-opens)). Hold it on a Tufty to power off |
 
 All five front buttons (A, B, C, UP and DOWN) are available to apps. HOME and RESET belong to the firmware.
@@ -180,8 +180,14 @@ Moods live in `config.json` inside the app folder. Each set is a list of `[label
 ```json
 {
   "moods": [
-    [["Chilled", "fig_chilled.png"], ["Sad", "fig_sad.png"]],
-    [["Agree", "thumb_up.png"], ["Disagree", "thumb_down.png"]]
+    [
+      ["Chilled", "fig_chilled.png"],
+      ["Sad", "fig_sad.png"]
+    ],
+    [
+      ["Agree", "thumb_up.png"],
+      ["Disagree", "thumb_down.png"]
+    ]
   ],
   "initial": [0, 0]
 }
@@ -206,7 +212,11 @@ To keep a single set, list only that one. The ◀ ▶ arrows are hidden and **A*
 ```json
 {
   "moods": [
-    [["Chilled", "sent_chilled.png"], ["Sad", "sent_sad.png"], ["Angry", "sent_angry.png"]]
+    [
+      ["Chilled", "sent_chilled.png"],
+      ["Sad", "sent_sad.png"],
+      ["Angry", "sent_angry.png"]
+    ]
   ]
 }
 ```
@@ -217,17 +227,17 @@ For your own pictures, any image editor will do: save a 122×136 PNG using black
 
 ## Differences from MoodBadger (Badger 2040)
 
-| | MoodBadger (Badger 2040) | Mood Badger (Badger 2350) |
-| --- | --- | --- |
-| Screen | 296×128, black and white | 264×176, black, white and two greys |
-| Images | JPEG via `jpegdec` | 4-grey PNG via `image.load` |
-| Refresh | TURBO refresh, then a clean-up refresh after 3 seconds | One refresh per change. Firmware v3.1.1 uses the same waveform for every update speed |
-| Mood sets | A, B and C jump straight to sets 1, 2 and 3 | A and C step back and forward through any number of sets |
-| Third set | A copy of the thumbs set, to give C a shortcut | Weather pictures from MoodBadger's unused images |
-| Material faces | None | The first set: Material Symbols sentiment faces in the same outline style as the thumbs and weather, which may later replace the Lego faces |
-| Sleep | `turn_off()` after each change | Badgeware sleep after 5 seconds on battery; a wake restarts the app |
-| Saved state | `/state.json` | `/state/mood_badger.json` via Badgeware `State` |
-| Install | Copy `main.py` over the badge's main program | A folder app that sits alongside the other apps |
+|                | MoodBadger (Badger 2040)                               | Mood Badger (Badger 2350)                                                                                                                   |
+| -------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Screen         | 296×128, black and white                               | 264×176, black, white and two greys                                                                                                         |
+| Images         | JPEG via `jpegdec`                                     | 4-grey PNG via `image.load`                                                                                                                 |
+| Refresh        | TURBO refresh, then a clean-up refresh after 3 seconds | One refresh per change. Firmware v3.1.1 uses the same waveform for every update speed                                                       |
+| Mood sets      | A, B and C jump straight to sets 1, 2 and 3            | A and C step back and forward through any number of sets                                                                                    |
+| Third set      | A copy of the thumbs set, to give C a shortcut         | Weather pictures from MoodBadger's unused images                                                                                            |
+| Material faces | None                                                   | The first set: Material Symbols sentiment faces in the same outline style as the thumbs and weather, which may later replace the Lego faces |
+| Sleep          | `turn_off()` after each change                         | Badgeware sleep after 5 seconds on battery; a wake restarts the app                                                                         |
+| Saved state    | `/state.json`                                          | `/state/mood_badger.json` via Badgeware `State`                                                                                             |
+| Install        | Copy `main.py` over the badge's main program           | A folder app that sits alongside the other apps                                                                                             |
 
 Sprite sheets are not used. A wake draws exactly one picture, so loading one small PNG is faster and lighter than decoding a sheet of every mood, and a caregiver can add a mood by dropping in a file.
 
@@ -267,19 +277,19 @@ The [Blinky 2350](https://github.com/pimoroni/blinky2350) (LED matrix) runs the 
 - [badger.github.io](https://badger.github.io/), [its app store](https://badger.github.io/apps/) and [`badger/home`](https://github.com/badger/home): GitHub Universe 2026 badge
 - [All Pimoroni Badgeware repositories](https://github.com/orgs/pimoroni/repositories?q=badgeware)
 
-| Repository | Use here |
-| --- | --- |
-| [`badger2350`](https://github.com/pimoroni/badger2350) | E-ink firmware and stock apps; the source of truth for behaviour |
-| [`badgeware-docs`](https://github.com/pimoroni/badgeware-docs) | Source of the `badgewa.re/docs` site |
-| [`badgeware-contrib`](https://github.com/pimoroni/badgeware-contrib) | Community apps; where to share Mood Badger |
-| [`badgeware-wasm`](https://github.com/pimoroni/badgeware-wasm) | WebAssembly simulator with Badger and Tufty variants; used by `sim/` |
-| [`badgeware-simulator`](https://github.com/pimoroni/badgeware-simulator) | Native desktop simulator |
-| [`badgeware-web-simulator`](https://github.com/pimoroni/badgeware-web-simulator) | Browser simulator at `try.badgewa.re`, Tufty only |
-| [`badgeware-ide`](https://github.com/pimoroni/badgeware-ide) | Prototype browser IDE, Tufty only |
-| [`picovector-micropython`](https://github.com/pimoroni/picovector-micropython) | Graphics engine behind `image`, `screen` and `shape` |
-| [`badgeware-fonts`](https://github.com/pimoroni/badgeware-fonts) | Builds fonts for Badgeware |
-| [`badgeware-cpp`](https://github.com/pimoroni/badgeware-cpp) | C++ alternative to MicroPython; not used here |
-| [`tufty2350`](https://github.com/pimoroni/tufty2350), [`blinky2350`](https://github.com/pimoroni/blinky2350) | Firmware for the other badges |
+| Repository                                                                                                   | Use here                                                             |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| [`badger2350`](https://github.com/pimoroni/badger2350)                                                       | E-ink firmware and stock apps; the source of truth for behaviour     |
+| [`badgeware-docs`](https://github.com/pimoroni/badgeware-docs)                                               | Source of the `badgewa.re/docs` site                                 |
+| [`badgeware-contrib`](https://github.com/pimoroni/badgeware-contrib)                                         | Community apps; where to share Mood Badger                           |
+| [`badgeware-wasm`](https://github.com/pimoroni/badgeware-wasm)                                               | WebAssembly simulator with Badger and Tufty variants; used by `sim/` |
+| [`badgeware-simulator`](https://github.com/pimoroni/badgeware-simulator)                                     | Native desktop simulator                                             |
+| [`badgeware-web-simulator`](https://github.com/pimoroni/badgeware-web-simulator)                             | Browser simulator at `try.badgewa.re`, Tufty only                    |
+| [`badgeware-ide`](https://github.com/pimoroni/badgeware-ide)                                                 | Prototype browser IDE, Tufty only                                    |
+| [`picovector-micropython`](https://github.com/pimoroni/picovector-micropython)                               | Graphics engine behind `image`, `screen` and `shape`                 |
+| [`badgeware-fonts`](https://github.com/pimoroni/badgeware-fonts)                                             | Builds fonts for Badgeware                                           |
+| [`badgeware-cpp`](https://github.com/pimoroni/badgeware-cpp)                                                 | C++ alternative to MicroPython; not used here                        |
+| [`tufty2350`](https://github.com/pimoroni/tufty2350), [`blinky2350`](https://github.com/pimoroni/blinky2350) | Firmware for the other badges                                        |
 
 ## Development
 
@@ -289,14 +299,18 @@ The [Blinky 2350](https://github.com/pimoroni/blinky2350) (LED matrix) runs the 
 git submodule update --init
 python3 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt
+git config core.hooksPath .githooks   # once per clone: check Markdown formatting before each commit
 ```
 
-| Task | Command |
-| --- | --- |
-| Run the tests | `.venv/bin/pytest` |
-| Check MicroPython syntax | `for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done` |
-| Lint as `badgeware-contrib` does | `.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger` |
-| Regenerate images | `.venv/bin/python -m tools.convert_moods` |
+The pre-commit hook needs Node.js (`npx`). GitHub Actions (`.github/workflows/ci.yml`) runs the lint, syntax, test and Markdown checks below on every pull request and push to `main`.
+
+| Task                                     | Command                                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Run the tests                            | `.venv/bin/pytest`                                                                                      |
+| Check MicroPython syntax                 | `for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done` |
+| Lint with Pimoroni's rules (`ruff.toml`) | `.venv/bin/ruff check .`                                                                                |
+| Format Markdown                          | `npx --yes prettier@3.9.10 --write <files>`                                                             |
+| Regenerate images                        | `.venv/bin/python -m tools.convert_moods`                                                               |
 
 The app's logic is in `moods.py`, which has no Badgeware dependencies. `__init__.py` is the Badgeware layer, tested against a recording fake in `tests/fake_badgeware.py`.
 
@@ -304,13 +318,13 @@ The app's logic is in `moods.py`, which has no Badgeware dependencies. `__init__
 
 The app is a communication aid a child relies on, and the Badger is in real use, so a change is verified in layers, fastest first. Each layer catches things the one before it can't.
 
-| Layer | Command | Catches | Misses |
-| --- | --- | --- | --- |
-| 1. Unit tests | `.venv/bin/pytest` | Logic, saving, button and backlight rules, using a Badger-only name on the Tufty. `run_app(..., model="tufty", usb=[...])` in `tests/fake_badgeware.py` runs the real app against a fake of either badge | Anything the fake doesn't model: real drawing, timing, hardware |
-| 2. MicroPython checks | `mpy_cross` and `ruff` (table above) | Syntax MicroPython rejects, undefined Badgeware names | Behaviour |
-| 3. Headless simulator | `python3 sim/stage.py && node sim/run_headless.mjs --model tufty --press DOWN --frames out.json` (also run by layer 1 when `node` is installed) | The real firmware Python drawing the real app on each badge: pixels, layout, colours | Sleep, waking, restart reasons, battery, e-ink refresh |
-| 4. Browser simulator | See [Simulator](#simulator); open `/badger/` and `/tufty/` | What a person notices: does it look right? | As layer 3 |
-| 5. Real badges | `python3 -m tools.badge_info`, `python3 -m tools.install --wait 180 --eject`, `python3 -m tools.badge_check files`, `python3 -m tools.badge_check wake-reason --after-restart 180` | Firmware, the installed copy as the badge sees it, restart reasons, power, how it feels to use | - |
+| Layer                 | Command                                                                                                                                                                            | Catches                                                                                                                                                                                                  | Misses                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| 1. Unit tests         | `.venv/bin/pytest`                                                                                                                                                                 | Logic, saving, button and backlight rules, using a Badger-only name on the Tufty. `run_app(..., model="tufty", usb=[...])` in `tests/fake_badgeware.py` runs the real app against a fake of either badge | Anything the fake doesn't model: real drawing, timing, hardware |
+| 2. MicroPython checks | `mpy_cross` and `ruff` (table above)                                                                                                                                               | Syntax MicroPython rejects, undefined Badgeware names                                                                                                                                                    | Behaviour                                                       |
+| 3. Headless simulator | `python3 sim/stage.py && node sim/run_headless.mjs --model tufty --press DOWN --frames out.json` (also run by layer 1 when `node` is installed)                                    | The real firmware Python drawing the real app on each badge: pixels, layout, colours                                                                                                                     | Sleep, waking, restart reasons, battery, e-ink refresh          |
+| 4. Browser simulator  | See [Simulator](#simulator); open `/badger/` and `/tufty/`                                                                                                                         | What a person notices: does it look right?                                                                                                                                                               | As layer 3                                                      |
+| 5. Real badges        | `python3 -m tools.badge_info`, `python3 -m tools.install --wait 180 --eject`, `python3 -m tools.badge_check files`, `python3 -m tools.badge_check wake-reason --after-restart 180` | Firmware, the installed copy as the badge sees it, restart reasons, power, how it feels to use                                                                                                           | -                                                               |
 
 `tools.badge_check files` compares the app on the badge (read over USB after the eject) with `badger/mood_badger`; `wake-reason` reports why the badge last restarted, optionally waiting for you to press RESET or HOME first. Both stop the running app and restart the badge: a Badger reopens the app it was showing, and a Tufty in start-in-app mode shows the menu (RESET brings Mood Badger back).
 
@@ -333,10 +347,10 @@ The simulator shows layout, art, labels and navigation. It does not model sleep,
 
 The repository is set up for [Claude Code](https://claude.com/claude-code). `CLAUDE.md` holds the project instructions, and `.claude/settings.json` enables the plugins below from the `anthropics/claude-plugins-official` marketplace. Claude Code offers to install them when you trust the folder; `CLAUDE.md` gives the commands to install them by hand.
 
-| Plugin | Used for |
-| --- | --- |
-| `superpowers` | Brainstorming, plans, test-driven development, debugging, code review |
-| `skill-creator` | Creating and improving project skills under `.claude/skills/` |
+| Plugin                 | Used for                                                                |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `superpowers`          | Brainstorming, plans, test-driven development, debugging, code review   |
+| `skill-creator`        | Creating and improving project skills under `.claude/skills/`           |
 | `claude-md-management` | Checking `CLAUDE.md` against the code and saving what a session learned |
 
 Project skills in `.claude/skills/`: `badge-deploy` (install the app), `badge-firmware` (check and flash firmware), `badge-verify` (the [testing](#testing) layers and hand checklists) and `badgeware-platforms` (how the Badger and Tufty differ, with firmware references).

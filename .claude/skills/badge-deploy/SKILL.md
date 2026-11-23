@@ -38,7 +38,7 @@ fail**: report the failure and offer to fix it instead of copying.
 ```bash
 .venv/bin/pytest -q
 for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done
-.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger
+.venv/bin/ruff check .
 ```
 
 The `kiosk/` files are checked too because `--kiosk` and `--start-in-app`

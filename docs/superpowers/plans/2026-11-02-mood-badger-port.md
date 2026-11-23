@@ -69,6 +69,7 @@
 ### Task 1: Project setup and image pipeline
 
 **Files:**
+
 - Create: `.gitignore`, `requirements-dev.txt`, `.gitmodules`, `vendor/badger2350`, `vendor/MoodBadger`
 - Create: `badger/mood_badger/config.json`, `badger/mood_badger/icon.png`, `badger/mood_badger/assets/*.png`
 - Create: `tools/convert_moods.py`
@@ -76,6 +77,7 @@
 - Modify: `CLAUDE.md` (the intro now wrongly omits the `SessionStart` hook)
 
 **Interfaces:**
+
 - Produces: `tools.convert_moods.quantise(value: int) -> int`
 - Produces: `tools.convert_moods.convert_image(src: Path, dst: Path, size: tuple[int, int]) -> None`
 - Produces: `badger/mood_badger/config.json` and the PNGs it names
@@ -136,11 +138,11 @@ Expected: PASS
 
 `config.json` keeps the upstream stem spellings in filenames and fixes the label spellings:
 
-| Set | Entries (label, file) |
-| --- | --- |
-| 0 | Chilled `happy`; Sad `sad`; Bored `bored`; Annoyed `annoyed`; Angry `angry`; Embarrassed `embarassed`; Surprised `surprised`; Very Happy `very_happy` |
-| 1 | Agree `thumb_up`; Disagree `thumb_down` |
-| 2 | Clear `day_clear`; Part Cloudy `day_part_cloudy`; Rainy `day_rainy`; Storm `day_storm` |
+| Set | Entries (label, file)                                                                                                                                 |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0   | Chilled `happy`; Sad `sad`; Bored `bored`; Annoyed `annoyed`; Angry `angry`; Embarrassed `embarassed`; Surprised `surprised`; Very Happy `very_happy` |
+| 1   | Agree `thumb_up`; Disagree `thumb_down`                                                                                                               |
+| 2   | Clear `day_clear`; Part Cloudy `day_part_cloudy`; Rainy `day_rainy`; Storm `day_storm`                                                                |
 
 `"initial": [0, 0, 0]`. Every file has a `.png` suffix. Upstream's duplicated third set exists only for its A/B/C shortcuts; the weather images replace it because cycling would otherwise show the same set twice.
 
@@ -164,10 +166,12 @@ git commit -m "feat: convert MoodBadger art to 4-grey Badger 2350 PNGs"
 ### Task 2: Mood logic
 
 **Files:**
+
 - Create: `badger/mood_badger/moods.py`
 - Test: `tests/test_moods.py`
 
 **Interfaces:**
+
 - Consumes: `config.json` schema from Task 1
 - Produces, in `moods`:
   - `MAX_MOODS = 16`
@@ -263,10 +267,12 @@ git commit -m "feat: add mood navigation, config parsing and state restore"
 ### Task 3: Badgeware app
 
 **Files:**
+
 - Create: `badger/mood_badger/__init__.py`
 - Test: `tests/fake_badgeware.py`, `tests/test_app.py`
 
 **Interfaces:**
+
 - Consumes: everything in `moods` from Task 2; `config.json` and `assets/` from Task 1
 - Consumes Badgeware builtins: `screen`, `badge`, `image`, `color`, `font`, `shape`, `vec2`, `State`, `run`, `file_exists`, `wait_for_button_or_alarm`, `fatal_error`, `MEDIUM_UPDATE`, `NON_BLOCKING`, `BUTTON_UP`, `BUTTON_DOWN`, `BUTTON_B`
 - Produces: `tests.fake_badgeware.run_app(ticks: list, saved: dict | None = None, config_text: str | None = None, files_missing: tuple = ()) -> Result`. `ticks` holds one set of pressed buttons per `update()` call. `Result` has `events: list` (in-order strings such as `"clear"`, `"save"`, `"display"`, `"wait"`), `blits: list` of image paths, `texts: list` of `(text, font)`, `saved: dict`, `mode: int`, `fatal: str | None`.
@@ -342,6 +348,7 @@ Expected: FAIL because `badger/mood_badger/__init__.py` does not exist
 Module level, with no `badge.poll()` or `badge.update()`: read and parse `config.json`, calling `fatal_error("Mood Badger", ...)` with a message naming `config.json` on `OSError` or `ValueError`. Load state with `State.load("mood_badger", state)` and apply `moods.restore`. Call `badge.mode(MEDIUM_UPDATE | NON_BLOCKING)`. End with `run(update)`.
 
 `update()` runs in this order:
+
 1. `moods.apply_input` from `badge.pressed(...)`.
 2. If the position changed, update state and `State.save`.
 3. If it changed or `badge.first_update`, draw the frame, then `badge.update()`.
@@ -380,17 +387,20 @@ git commit -m "feat: add Mood Badger app for Badger 2350"
 Runs the real firmware Python from `vendor/badger2350` and the unmodified app in `pimoroni/badgeware-wasm`'s Badger build. It checks layout, art, labels and navigation; it does not model sleep, wake, refresh time or e-paper contrast, so Task 6 is still required.
 
 **Files:**
+
 - Create: `sim/wasm/micropython.mjs`, `sim/wasm/micropython.wasm`, `sim/wasm/SOURCE.md` (artifact id, `badgeware-wasm` commit, MIT notice)
 - Create: `sim/stage.py`, `sim/stubs/*.py`, `sim/boot.py`, `sim/index.html`, `sim/run_headless.mjs`
 - Modify: `.gitignore` (adds `sim/dist/`)
 - Test: `tests/test_sim.py`
 
 **Interfaces:**
+
 - Consumes: `badger/mood_badger/` from Tasks 1–3; `vendor/badger2350` at `v3.1.1`
 - Produces: `python3 sim/stage.py` writes `sim/dist/` (a servable site: the host page, the wasm pair, and `fs/` plus `fs/manifest.json` listing every file to write into the MicroPython filesystem)
 - Produces: `node sim/run_headless.mjs --press DOWN --frames out.json` boots the app, takes a frame, presses one button, takes a frame, and writes both frames' raw greyscale bytes and a status string
 
 **Fixed decisions:**
+
 - Use the `badgeware-badger2350-asyncify` CI artifact. It runs in Node and in every browser; `jspi` does not run in Node 18. The binaries are committed because the artifact expires on 2026-12-22. The fallback is `tools/build.sh badger2350 asyncify-fast` from `badgeware-wasm` with Emscripten.
 - The filesystem copies the firmware layout: `vendor/badger2350/modules/common/badgeware/*.py` at `/.frozen/badgeware/`, `firmware/main.py` at `/system/main.py`, fonts from `romfs/fonts/` wherever the `picovector` font loader looks for them, and the app at `/system/apps/mood_badger/`.
 - Sim-only code lives in `sim/` and never changes the app. `sim/stubs/` supplies the modules the wasm build lacks (at least `powman` and `pcf85063a`). `powman.sleep()` yields and returns: sleep is not modelled. VBUS reports connected, so the firmware never sleeps.
@@ -451,11 +461,13 @@ git commit -m "feat: run Mood Badger in the badgeware-wasm Badger simulator"
 ### Task 5: README and developer notes
 
 **Files:**
+
 - Create: `README.md`, `badger/mood_badger/README.md`
 - Modify: `CLAUDE.md`
 - Test: `tests/test_readme.py`
 
 **Interfaces:**
+
 - Consumes: controls, paths and firmware version from Global Constraints; findings from Verified Findings
 
 - [ ] **Step 1: Write the failing test**
@@ -490,6 +502,7 @@ Expected: FAIL with `FileNotFoundError`
 - [ ] **Step 3: Write `README.md` and update `CLAUDE.md`**
 
 `README.md` sections:
+
 1. **What it is:** purpose, credit to MoodBadger.
 2. **Install:** double-tap RESET, the disk appears (Pimoroni's README calls it `Badger2350`, the docs say `BADGER`), copy `badger/mood_badger` into `apps` to give `/apps/mood_badger`, safely eject, press RESET.
 3. **Controls:** a table including HOME and RESET, and a note that all five front buttons are app-usable.
@@ -501,19 +514,19 @@ Expected: FAIL with `FileNotFoundError`
 9. **Family and future:** Tufty and Blinky links, not yet supported.
 10. **References:** every link in the test, plus `try.badgewa.re` and the firmware releases page. Group the Pimoroni repositories in this table and link the org search so new ones can be found:
 
-| Repository | Use here |
-| --- | --- |
-| `badger2350` | E-ink firmware and stock apps; the source of truth for behaviour |
-| `badgeware-docs` | Source of the `badgewa.re/docs` site |
-| `badgeware-contrib` | Community apps; where to share Mood Badger |
-| `badgeware-wasm` | WebAssembly simulator with a Badger variant |
-| `badgeware-simulator` | Native desktop simulator |
-| `badgeware-web-simulator` | Browser simulator at `try.badgewa.re`, Tufty only |
-| `badgeware-ide` | Prototype browser IDE, Tufty only |
-| `picovector-micropython` | Graphics engine behind `image`, `screen` and `shape` |
-| `badgeware-fonts` | Builds fonts for Badgeware |
-| `badgeware-cpp` | C++ alternative to MicroPython; not used here |
-| `tufty2350`, `blinky2350` | Firmware for the other badges |
+| Repository                | Use here                                                         |
+| ------------------------- | ---------------------------------------------------------------- |
+| `badger2350`              | E-ink firmware and stock apps; the source of truth for behaviour |
+| `badgeware-docs`          | Source of the `badgewa.re/docs` site                             |
+| `badgeware-contrib`       | Community apps; where to share Mood Badger                       |
+| `badgeware-wasm`          | WebAssembly simulator with a Badger variant                      |
+| `badgeware-simulator`     | Native desktop simulator                                         |
+| `badgeware-web-simulator` | Browser simulator at `try.badgewa.re`, Tufty only                |
+| `badgeware-ide`           | Prototype browser IDE, Tufty only                                |
+| `picovector-micropython`  | Graphics engine behind `image`, `screen` and `shape`             |
+| `badgeware-fonts`         | Builds fonts for Badgeware                                       |
+| `badgeware-cpp`           | C++ alternative to MicroPython; not used here                    |
+| `tufty2350`, `blinky2350` | Firmware for the other badges                                    |
 
 11. **Development:** venv, pytest, mpy-cross, ruff, submodule init, and running the simulator with what it does and does not model.
 
@@ -540,34 +553,36 @@ git commit -m "docs: add README with install routes and references"
 Needs the human partner with a Badger 2350 on firmware v3.1.1 and battery power. The fake runtime cannot prove this task; do not mark it done from tests. Record each result in the commit message.
 
 **Files:**
+
 - Modify: `README.md` (only where results differ), `badger/mood_badger/__init__.py` (only if a timing fails)
 
 **Interfaces:**
+
 - Consumes: the installed app from Tasks 1–5
 
 - [ ] **Step 1: Install and launch.** Follow the README exactly.
-Expected: **Mood Badger** with its icon in the menu; the app opens on Chilled.
+      Expected: **Mood Badger** with its icon in the menu; the app opens on Chilled.
 
 - [ ] **Step 2: Check rendering.** View all 14 moods.
-Expected: images crisp, labels on screen, all labels readable at arm's length, pips correct. "Embarrassed" and "Part Cloudy" in `font.ignore` are the widest cases.
+      Expected: images crisp, labels on screen, all labels readable at arm's length, pips correct. "Embarrassed" and "Part Cloudy" in `font.ignore` are the widest cases.
 
 - [ ] **Step 3: Measure refresh time** with a stopwatch.
-Expected: a refresh ends well inside the 5-second sleep timeout. If not, raise `SLEEP_AFTER_MS` to the measured time plus 3 seconds and update the test and README.
+      Expected: a refresh ends well inside the 5-second sleep timeout. If not, raise `SLEEP_AFTER_MS` to the measured time plus 3 seconds and update the test and README.
 
 - [ ] **Step 4: Check sleep and wake on battery, with USB unplugged.** Wait 10 seconds, then press DOWN once.
-Expected: the image stays visible through sleep; the badge reopens this app rather than the menu; it moves exactly one mood. If it opens the menu, stop and report, because the design relies on `main.py` relaunching `state["running"]`.
+      Expected: the image stays visible through sleep; the badge reopens this app rather than the menu; it moves exactly one mood. If it opens the menu, stop and report, because the design relies on `main.py` relaunching `state["running"]`.
 
 - [ ] **Step 5: Check input edges.** Press DOWN repeatedly during a refresh; press B through all sets; press HOME.
-Expected: no crash; the final screen matches the saved state; B reaches all three sets and wraps; HOME returns to the menu.
+      Expected: no crash; the final screen matches the saved state; B reaches all three sets and wraps; HOME returns to the menu.
 
 - [ ] **Step 6: Check persistence.** Select a mood, press HOME, reopen the app, then press RESET and reopen.
-Expected: the selected mood is restored both times.
+      Expected: the selected mood is restored both times.
 
 - [ ] **Step 7: Check bad input.** Temporarily rename one PNG, separately replace one with a JPEG renamed to `.png`, and separately break `config.json` on the badge.
-Expected: the label shows without its image in both image cases, and the app keeps working; a readable error names `config.json`. Restore the files.
+      Expected: the label shows without its image in both image cases, and the app keeps working; a readable error names `config.json`. Restore the files.
 
 - [ ] **Step 8: Try the store's Add local app.** Open `https://badger.github.io/apps/` and try **Open BADGER disk** with the e-ink badge in disk mode.
-Expected: either result is acceptable. Record in the README's app store section whether it worked.
+      Expected: either result is acceptable. Record in the README's app store section whether it worked.
 
 - [ ] **Step 9: Commit the results**
 

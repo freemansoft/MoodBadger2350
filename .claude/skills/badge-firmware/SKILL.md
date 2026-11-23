@@ -25,11 +25,11 @@ the `tools` package. They need `mpremote` on the PATH
 
 ## The badge's three USB modes
 
-| Mode | How the user gets there | What the computer sees |
-| --- | --- | --- |
-| Normal | Press RESET once, or just plug it in | A serial port, `Pimoroni Badger 2350 MicroPython` or `Pimoroni Tufty 2350 MicroPython` in `mpremote devs` |
-| Bootloader | Hold BOOT, tap RESET, let go of BOOT | A drive named `RP2350` holding `INFO_UF2.TXT` |
-| Disk mode | Double-tap RESET | A drive named `BADGER` (Pimoroni's README says `Badger2350`) or `TUFTY` |
+| Mode       | How the user gets there              | What the computer sees                                                                                    |
+| ---------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Normal     | Press RESET once, or just plug it in | A serial port, `Pimoroni Badger 2350 MicroPython` or `Pimoroni Tufty 2350 MicroPython` in `mpremote devs` |
+| Bootloader | Hold BOOT, tap RESET, let go of BOOT | A drive named `RP2350` holding `INFO_UF2.TXT`                                                             |
+| Disk mode  | Double-tap RESET                     | A drive named `BADGER` (Pimoroni's README says `Badger2350`) or `TUFTY`                                   |
 
 Buttons, with the **back of the badge facing the user**: BOOT is
 towards the far left, RESET is just to the right of BOOT. On battery

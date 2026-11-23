@@ -73,14 +73,14 @@ sessions) reasons about both badges correctly.
    - anything else: `launch("/system/apps/mood_badger")`.
    - `WAKE_DOUBLETAP` never reaches `main.py` (`modules/common/main.py`
      enters disk mode first).
-   From the menu, picking any app works as normal. Known side effects,
-   accepted: dismissing an error screen also restarts with
-   `WAKE_WATCHDOG`, so it lands on the menu; HOME in the menu stays in
-   the menu. `tools.install` gets a flag for it (for example
-   `--start-in-app`) beside `--kiosk` and `--menu`, and `badge_info`
-   reports which boot file is installed (stock, kiosk or start-in-app).
-   The wake-reason behaviour is read from source; confirming it on the
-   user's Tufty is part of the hardware check.
+     From the menu, picking any app works as normal. Known side effects,
+     accepted: dismissing an error screen also restarts with
+     `WAKE_WATCHDOG`, so it lands on the menu; HOME in the menu stays in
+     the menu. `tools.install` gets a flag for it (for example
+     `--start-in-app`) beside `--kiosk` and `--menu`, and `badge_info`
+     reports which boot file is installed (stock, kiosk or start-in-app).
+     The wake-reason behaviour is read from source; confirming it on the
+     user's Tufty is part of the hardware check.
 8. The deploy and firmware tooling handles a Tufty end to end:
    `tools.install` copies the same app to a `TUFTY` drive, `--menu`
    restores the Tufty's own stock `main.py` (not the Badger's), and
@@ -89,9 +89,9 @@ sessions) reasons about both badges correctly.
    `vendor/tufty2350` submodule pinned to `v3.1.1`, so code and the
    skill can cite it.
 10. The browser simulator can run the app as a Tufty as well as a
-   Badger, using the `badgeware-tufty2350-asyncify` build from the same
-   pimoroni/badgeware-wasm run (35841227054) the Badger build came from,
-   so the Tufty layout can be checked without hardware.
+    Badger, using the `badgeware-tufty2350-asyncify` build from the same
+    pimoroni/badgeware-wasm run (35841227054) the Badger build came from,
+    so the Tufty layout can be checked without hardware.
 
 ## Non-goals
 
@@ -118,23 +118,23 @@ sessions) reasons about both badges correctly.
 
 Paths are relative to `vendor/badger2350` and `vendor/tufty2350`.
 
-| | Badger 2350 | Tufty 2350 | Source |
-| --- | --- | --- | --- |
-| Screen | e-ink, keeps its image unpowered, slow refresh | colour LCD with backlight (`display.backlight(0..1)`) | `modules/common/badgeware/__init__.py` |
-| Resolution | 264x176 | 160x120 (LORES, the default) or 320x240 (`badge.mode(HIRES)`) | Tufty `__init__.py` end, `badge.py` `mode()` |
-| Default pen/clear | black on white | white on black | `badge.py` `Badge.__init__` |
-| `run()` loop | calls `update()` only; app calls `badge.update()` to refresh | calls `badge.clear()` before and `display.update()` after every `update()`, every frame (~90 fps with VSYNC) | `__init__.py` `_run.__call__` |
-| `badge.first_update` | set False after the first `badge.update()` | never set False | `badge.py` `update()` |
-| `NON_BLOCKING` | defined | not defined (NameError) | `badge.py` builtins |
-| `wait_for_button_or_alarm` | defined; sleeps after timeout on battery | not defined | Badger `__init__.py` |
-| Wake from deep sleep | returns to the last app (`state["running"]`) | `firmware/main.py` always opens the menu | `firmware/main.py` |
-| Restart reason | `powman.get_wake_reason()`; stock `main.py` opens the menu on `WAKE_RESET` | same function; HOME gives `WAKE_WATCHDOG`, RESET `WAKE_RESET`, button power-on `WAKE_BUTTON_*` | Tufty `modules/c/powman/bindings.c` |
-| Hold RESET | — | case lights fade, then power off; buttons wake | Tufty `modules/c/powman/powman.c` `handle_long_press` |
-| Disk-mode drive | `BADGER` | `TUFTY` | `board/mpconfigboard.cmake` `PIMORONI_FATFS_LABEL` |
-| `State`, filesystem helpers | same | same | `state.py`, `filesystem.py` identical |
-| Fonts | same set (`ignore`, `ziplock`, `smart`, `winds` used) | same | `romfs/fonts` |
-| Power source | `badge.usb_connected()` | same | `badge.py` |
-| Scaled blit | — | `screen.blit(img, rect(x, y, w, h))` (used by `fatal_error`) | Tufty `__init__.py` |
+|                             | Badger 2350                                                                | Tufty 2350                                                                                                   | Source                                                |
+| --------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Screen                      | e-ink, keeps its image unpowered, slow refresh                             | colour LCD with backlight (`display.backlight(0..1)`)                                                        | `modules/common/badgeware/__init__.py`                |
+| Resolution                  | 264x176                                                                    | 160x120 (LORES, the default) or 320x240 (`badge.mode(HIRES)`)                                                | Tufty `__init__.py` end, `badge.py` `mode()`          |
+| Default pen/clear           | black on white                                                             | white on black                                                                                               | `badge.py` `Badge.__init__`                           |
+| `run()` loop                | calls `update()` only; app calls `badge.update()` to refresh               | calls `badge.clear()` before and `display.update()` after every `update()`, every frame (~90 fps with VSYNC) | `__init__.py` `_run.__call__`                         |
+| `badge.first_update`        | set False after the first `badge.update()`                                 | never set False                                                                                              | `badge.py` `update()`                                 |
+| `NON_BLOCKING`              | defined                                                                    | not defined (NameError)                                                                                      | `badge.py` builtins                                   |
+| `wait_for_button_or_alarm`  | defined; sleeps after timeout on battery                                   | not defined                                                                                                  | Badger `__init__.py`                                  |
+| Wake from deep sleep        | returns to the last app (`state["running"]`)                               | `firmware/main.py` always opens the menu                                                                     | `firmware/main.py`                                    |
+| Restart reason              | `powman.get_wake_reason()`; stock `main.py` opens the menu on `WAKE_RESET` | same function; HOME gives `WAKE_WATCHDOG`, RESET `WAKE_RESET`, button power-on `WAKE_BUTTON_*`               | Tufty `modules/c/powman/bindings.c`                   |
+| Hold RESET                  | —                                                                          | case lights fade, then power off; buttons wake                                                               | Tufty `modules/c/powman/powman.c` `handle_long_press` |
+| Disk-mode drive             | `BADGER`                                                                   | `TUFTY`                                                                                                      | `board/mpconfigboard.cmake` `PIMORONI_FATFS_LABEL`    |
+| `State`, filesystem helpers | same                                                                       | same                                                                                                         | `state.py`, `filesystem.py` identical                 |
+| Fonts                       | same set (`ignore`, `ziplock`, `smart`, `winds` used)                      | same                                                                                                         | `romfs/fonts`                                         |
+| Power source                | `badge.usb_connected()`                                                    | same                                                                                                         | `badge.py`                                            |
+| Scaled blit                 | —                                                                          | `screen.blit(img, rect(x, y, w, h))` (used by `fatal_error`)                                                 | Tufty `__init__.py`                                   |
 
 Other constraints:
 

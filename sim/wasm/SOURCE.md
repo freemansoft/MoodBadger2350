@@ -6,13 +6,13 @@ artifacts from [pimoroni/badgeware-wasm](https://github.com/pimoroni/badgeware-w
 from the same run, committed here because GitHub deletes CI artifacts after
 90 days.
 
-| | |
-| --- | --- |
-| Commit | `8cc5b05a1a07a823eb68ca1952b3603fe4d769bf` |
-| Workflow run | `35841227054` (2026-09-23) |
-| Badger artifact | `10740953689`, expires 2026-12-22 |
-| Tufty artifact | `10741935374`, expires 2026-12-22 |
-| Licence | MIT, Copyright (c) Pimoroni Ltd |
+|                 |                                            |
+| --------------- | ------------------------------------------ |
+| Commit          | `8cc5b05a1a07a823eb68ca1952b3603fe4d769bf` |
+| Workflow run    | `35841227054` (2026-09-23)                 |
+| Badger artifact | `10740953689`, expires 2026-12-22          |
+| Tufty artifact  | `10741935374`, expires 2026-12-22          |
+| Licence         | MIT, Copyright (c) Pimoroni Ltd            |
 
 To replace them, download newer artifacts:
 

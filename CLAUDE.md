@@ -4,10 +4,12 @@ Mood Badger: a MicroPython Badgeware app for the Pimoroni Badger 2350 (e-ink) an
 
 ## Development
 
-- Set up: `git submodule update --init`, then `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`
+- Set up: `git submodule update --init`, then `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`, then `git config core.hooksPath .githooks` (the pre-commit hook checks staged Markdown with prettier)
 - Test: `.venv/bin/pytest` (includes a headless simulator run when `node` is installed)
 - MicroPython syntax: `for f in badger/mood_badger/*.py kiosk/*.py; do .venv/bin/python -m mpy_cross -o /dev/null "$f"; done` (the `kiosk/` boot files go on the badge too)
-- Lint: `.venv/bin/ruff check --config vendor/badger2350/ci/ruff.toml badger/mood_badger`
+- Lint: `.venv/bin/ruff check .` (`ruff.toml` extends Pimoroni's `vendor/badger2350/ci/ruff.toml`)
+- Markdown: `npx --yes prettier@3.9.10 --write <files>`; keep the version the same in `.githooks/pre-commit`, `.github/workflows/ci.yml` and the README
+- CI (`.github/workflows/ci.yml`) runs the lint, MicroPython syntax, tests and Markdown checks on every PR and push to `main`
 - Simulator: `python3 sim/stage.py && python3 -m http.server -d sim/dist 8000`, then `/badger/` or `/tufty/`. Headless: `node sim/run_headless.mjs --model tufty --press DOWN --frames out.json`
 - Project skills: `badgeware-platforms` (how the Badger and Tufty differ; read it before writing app code for either), `badge-verify` (which test layers a change needs, simulator and hardware checks, hand checklists), `badge-deploy` (install the app and set what the badge opens) and `badge-firmware` (check or flash firmware). The tools they drive run as modules from the repository root (`python3 -m tools.install`)
 - Button presses on a real badge: start the tool with `--wait 180` in the background and end the turn with the instructions; tell the user not to touch the badge until the tool says "Ejected" or "Flash complete". Never assume a press happened; read the result
