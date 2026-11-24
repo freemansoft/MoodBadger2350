@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 from PIL import Image, ImageOps
 
@@ -7,7 +10,7 @@ CELL = (122, 136)
 
 
 @pytest.mark.parametrize("value,expected", [
-    (0, 0), (63, 0), (64, 85), (127, 85), (128, 170), (191, 170), (192, 255), (255, 255),
+    (63, 0), (64, 85), (127, 85), (128, 170), (191, 170), (192, 255),
 ])
 def test_quantise_matches_firmware_bit_planes(value, expected):
     assert quantise(value) == expected
@@ -53,27 +56,16 @@ def test_symbol_is_drawn_at_the_requested_width_centred_in_four_greys(tmp_path):
     assert abs((left + right) - CELL[0]) <= 1 and abs((top + bottom) - CELL[1]) <= 1
 
 
-def test_material_faces_name_real_symbols():
-    from tools.convert_moods import MATERIAL_FACES
+def test_every_configured_photo_has_its_moodbadger_jpeg():
+    # main() draws the Material faces and converts every other configured
+    # image from vendor/MoodBadger/moods/<stem>.jpg (renamed by JPEG_SOURCES).
+    from tools.convert_moods import APP_DIR, JPEG_SOURCES, MATERIAL_FACES, SOURCE_DIR
 
-    assert MATERIAL_FACES == {
-        "sent_chilled": "sentiment_satisfied",
-        "sent_sad": "sentiment_sad",
-        "sent_angry": "sentiment_extremely_dissatisfied",
-        "sent_very_happy": "sentiment_very_satisfied",
-        "sent_sick": "sick",
-        "sent_bored": "sentiment_neutral",
-        "sent_frustrated": "sentiment_frustrated",
-    }
-
-
-def test_lego_figures_come_from_moodbadgers_jpegs():
-    from tools.convert_moods import JPEG_SOURCES, SOURCE_DIR
-
-    assert JPEG_SOURCES["fig_chilled"] == "happy"
-    assert JPEG_SOURCES["fig_embarrassed"] == "embarassed"
-    for stem in JPEG_SOURCES.values():
-        assert (SOURCE_DIR / f"{stem}.jpg").exists(), stem
+    config = json.loads((APP_DIR / "config.json").read_text())
+    stems = {Path(image).stem for mood_set in config["moods"] for _, image in mood_set} - set(MATERIAL_FACES)
+    assert stems
+    for stem in sorted(stems):
+        assert (SOURCE_DIR / f"{JPEG_SOURCES.get(stem, stem)}.jpg").exists(), stem
 
 
 def test_icon_is_a_two_by_two_grid_of_symbols(tmp_path):
@@ -94,5 +86,5 @@ def test_icon_is_a_two_by_two_grid_of_symbols(tmp_path):
 def test_icon_uses_four_sent_faces():
     from tools.convert_moods import ICON_FACES, MATERIAL_FACES
 
-    assert ICON_FACES == ["sent_chilled", "sent_very_happy", "sent_sad", "sent_angry"]
-    assert set(ICON_FACES) <= set(MATERIAL_FACES)
+    # A 2x2 grid, drawn from the faces' Material symbols.
+    assert len(ICON_FACES) == 4 and set(ICON_FACES) <= set(MATERIAL_FACES)

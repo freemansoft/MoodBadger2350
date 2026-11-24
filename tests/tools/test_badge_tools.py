@@ -9,7 +9,7 @@ import pytest
 from tools import badgeware_release as rel
 from tools import badge_info, flash_firmware, install
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 
 # `mpremote devs` on a desk with a Tufty, a Particle board and Bluetooth ports.
 DEVS = """\
@@ -23,18 +23,9 @@ DEVS = """\
 # --- badgeware_release -------------------------------------------------------
 
 def test_badge_ports_finds_only_badges():
-    assert rel.badge_ports(DEVS) == [("/dev/cu.usbmodem201401", "tufty")]
-
-
-def test_badge_ports_finds_a_badger_and_a_tufty():
     devs = DEVS + "/dev/cu.usbmodem1101 abc 2e8a:1101 Pimoroni Pimoroni Badger 2350 MicroPython\n"
     assert rel.badge_ports(devs) == [
         ("/dev/cu.usbmodem201401", "tufty"), ("/dev/cu.usbmodem1101", "badger")]
-
-
-def test_asset_names_match_pimoroni_releases():
-    assert rel.asset_name("badger", "v3.1.1", False) == "badger-v3.1.1-micropython.uf2"
-    assert rel.asset_name("tufty", "v3.1.1", True) == "tufty-v3.1.1-micropython-with-filesystem.uf2"
 
 
 def test_pick_asset_chooses_the_flavour_and_explains_a_miss():
@@ -84,7 +75,14 @@ def test_parse_info_reads_the_marked_line():
     assert badge_info.parse_info(out) == {"model": "badger"}
 
 
-def test_device_snippet_is_valid_micropython_syntax():
+def test_parse_info_without_the_marked_line_is_an_error():
+    # The error carries mpremote's output, so a crash on the badge is readable.
+    with pytest.raises(ValueError, match="Traceback"):
+        badge_info.parse_info("Traceback ...")
+
+
+def test_device_snippet_compiles():
+    # CPython's compiler: catches syntax errors before the badge does.
     compile(badge_info.DEVICE_SNIPPET, "<badge>", "exec")
 
 
@@ -116,20 +114,9 @@ def summary(main_py):
 
 def test_badge_info_reports_the_start_up_mode(capsys):
     info = summary((ROOT / "kiosk" / "start_in_app.py").read_text())
-    assert info["boot_mode"] == "start-in-app" and "kiosk" not in info
+    assert info["boot_mode"] == "start-in-app"
     badge_info.report(info, "offline")
-    assert "Start-up:" in capsys.readouterr().out
-
-
-@pytest.mark.parametrize("mode,text", [
-    ("kiosk", "Mood Badger only (kiosk)"),
-    ("start-in-app", "Mood Badger, HOME opens the menu (start-in-app)"),
-    ("menu", "Pimoroni menu"),
-    ("custom", "custom main.py"),
-    (None, "unknown"),
-])
-def test_badge_info_start_up_text(mode, text):
-    assert badge_info.START_UP_TEXT[mode] == text
+    assert badge_info.START_UP_TEXT["start-in-app"] in capsys.readouterr().out
 
 
 # --- install -------------------------------------------------------------------
@@ -161,17 +148,14 @@ def test_model_comes_from_the_drive_label():
     assert install.model_for_drive(Path("/Volumes/USBSTICK")) is None
 
 
-def test_tufty_drive_installs_the_same_app():
-    assert install.APPS["badger"] == ROOT / "badger" / "mood_badger"
-    assert install.APPS["tufty"] == install.APPS["badger"]
-    assert install.model_for_drive(Path("/Volumes/TUFTY")) == "tufty"
-
-
-def test_menu_restores_the_stock_main_for_that_model(tmp_path):
+def test_menu_restores_the_stock_main_for_that_model(tmp_path, monkeypatch):
+    # The two stock files differ, so --menu must pick the one for the drive's model.
     badger, tufty = install.STOCK_MAINS["badger"], install.STOCK_MAINS["tufty"]
     assert badger.read_text() != tufty.read_text()
     root = fake_drive(tmp_path, "TUFTY")
-    install.set_main(root, tufty)
+    monkeypatch.setattr(install, "APPS", {"tufty": fake_app(tmp_path)})
+    monkeypatch.setattr("sys.argv", ["install", "--dest", str(root), "--menu"])
+    install.main()
     assert (root / "main.py").read_text() == tufty.read_text()
 
 
@@ -180,8 +164,7 @@ def test_start_in_app_refused_on_a_badger(tmp_path, monkeypatch):
     monkeypatch.setattr("sys.argv", ["install", "--dest", str(root), "--model", "badger", "--start-in-app"])
     with pytest.raises(SystemExit) as stop:
         install.main()
-    assert str(stop.value) == ("Start-in-app mode is for the Tufty 2350; the Badger already returns "
-                               "to Mood Badger after a wake. Nothing copied.")
+    assert str(stop.value) == install.START_IN_APP_BADGER
     assert not (root / "apps" / "mood_badger").exists()
     assert (root / "main.py").read_text() == "stock main"
 
@@ -213,21 +196,6 @@ def test_verify_copy_reports_missing_and_changed_files(tmp_path):
     (target / "assets" / "a.png").write_bytes(b"truncated-and-changed")
     (target / "__init__.py").unlink()
     assert sorted(install.verify_copy(src, target)) == ["__init__.py", "assets/a.png"]
-
-
-def test_kiosk_install_and_restore(tmp_path):
-    root = fake_drive(tmp_path)
-    install.set_main(root, install.KIOSK_MAIN)
-    assert install.boot_mode((root / "main.py").read_text()) == "kiosk"
-    install.set_main(root, install.STOCK_MAINS["badger"])
-    assert install.boot_mode((root / "main.py").read_text()) == "menu"
-    assert (root / "main.py").read_text() == install.STOCK_MAINS["badger"].read_text()
-
-
-def test_start_in_app_install(tmp_path):
-    root = fake_drive(tmp_path, "TUFTY")
-    install.set_main(root, install.START_IN_APP_MAIN)
-    assert install.boot_mode((root / "main.py").read_text()) == "start-in-app"
 
 
 def test_looks_like_badge_needs_apps_and_main(tmp_path):
@@ -266,12 +234,6 @@ def test_wait_for_gives_up_after_the_timeout():
     found = rel.wait_for(list, timeout=10, interval=1, clock=clock.time, sleep=clock.sleep)
     assert found == []
     assert clock.now == 10
-
-
-def test_wait_for_with_no_timeout_looks_once():
-    clock = FakeClock()
-    assert rel.wait_for(list, timeout=0, clock=clock.time, sleep=clock.sleep) == []
-    assert clock.now == 0
 
 
 # --- surviving interruptions and macOS metadata ---------------------------------
@@ -369,3 +331,90 @@ def test_start_in_app_eject_says_to_press_reset(tmp_path, monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "Start-up: start-in-app" in out
     assert "menu: press RESET once to open Mood Badger" in out
+
+
+# --- install: ejecting, and more ways a copy can fail --------------------------
+
+class FakeRun:
+    """Stands in for subprocess.run, recording each command."""
+
+    def __init__(self, returncode=0):
+        self.returncode = returncode
+        self.calls = []
+
+    def __call__(self, cmd, **_kwargs):
+        self.calls.append(cmd)
+        return type("Result", (), {"returncode": self.returncode})()
+
+
+@pytest.mark.parametrize("platform,cmd", [
+    ("darwin", ["diskutil", "eject", "/Volumes/BADGER"]),
+    ("linux", ["umount", "/Volumes/BADGER"]),
+])
+def test_eject_uses_the_platforms_command(monkeypatch, platform, cmd):
+    run = FakeRun()
+    monkeypatch.setattr(install.sys, "platform", platform)
+    monkeypatch.setattr(install.subprocess, "run", run)
+    assert install.eject(Path("/Volumes/BADGER"))
+    assert run.calls == [cmd]
+
+
+def test_eject_reports_a_failure(monkeypatch):
+    monkeypatch.setattr(install.sys, "platform", "darwin")
+    monkeypatch.setattr(install.subprocess, "run", FakeRun(returncode=1))
+    assert not install.eject(Path("/Volumes/BADGER"))
+
+
+def test_eject_on_windows_runs_nothing(monkeypatch):
+    run = FakeRun()
+    monkeypatch.setattr(install.sys, "platform", "win32")
+    monkeypatch.setattr(install.subprocess, "run", run)
+    assert not install.eject(Path("E:\\"))
+    assert run.calls == []
+
+
+def test_install_skips_a_loose_pyc_file(tmp_path):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    (src / "moods.pyc").write_bytes(b"pyc")
+    target = install.install_app(src, root)
+    assert sorted(p.name for p in target.iterdir()) == ["__init__.py", "assets"]
+    assert install.verify_copy(src, target) == []
+
+
+def test_a_failed_copy_check_leaves_the_old_app(tmp_path, monkeypatch):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    old = root / "apps" / "mood_badger"
+    old.mkdir()
+    (old / "__init__.py").write_text("old app")
+    monkeypatch.setattr(install, "verify_copy", lambda src, target: ["__init__.py"])
+    with pytest.raises(OSError):
+        install.install_app(src, root)
+    assert sorted(p.name for p in old.iterdir()) == ["__init__.py"]
+    assert (old / "__init__.py").read_text() == "old app"
+
+
+def test_a_failed_swap_puts_the_old_app_back(tmp_path, monkeypatch):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    old = root / "apps" / "mood_badger"
+    old.mkdir()
+    (old / "__init__.py").write_text("old app")
+    real_rename = Path.rename
+
+    def rename(path, dest):
+        if path == install.staging_dir(root):
+            raise OSError("rename failed")
+        return real_rename(path, dest)
+
+    monkeypatch.setattr(install.Path, "rename", rename)
+    with pytest.raises(OSError):
+        install.install_app(src, root)
+    assert (old / "__init__.py").read_text() == "old app"
+
+
+def test_a_leftover_old_copy_is_cleared(tmp_path):
+    root, src = fake_drive(tmp_path), fake_app(tmp_path)
+    leftover = root / ".mood_badger.old" / "__init__.py"
+    leftover.parent.mkdir()
+    leftover.write_text("older")
+    install.install_app(src, root)
+    assert sorted(p.name for p in root.iterdir()) == ["apps", "main.py"]

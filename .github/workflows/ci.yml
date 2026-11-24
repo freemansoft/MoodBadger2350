@@ -42,6 +42,6 @@ jobs:
 
       # The same check as .githooks/pre-commit, for everyone: committed
       # Markdown (git ls-files skips the vendor/ submodules) must be
-      # prettier-formatted. Keep the version in step with the hook.
+      # prettier-formatted, with the version in .prettier-version.
       - name: Markdown formatting (prettier)
-        run: git ls-files -z '*.md' | xargs -0 npx --yes prettier@3.9.10 --config .prettierrc.json --check
+        run: git ls-files -z '*.md' | xargs -0 npx --yes prettier@$(cat .prettier-version) --config .prettierrc.json --check

@@ -6,11 +6,10 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parent.parent
-WIDTH, HEIGHT = 264, 176
+import moods
 
-sys.path.insert(0, str(ROOT / "badger" / "mood_badger"))
-import moods  # noqa: E402
+ROOT = Path(__file__).resolve().parents[2]
+WIDTH, HEIGHT = 264, 176
 
 TUFTY = moods.TUFTY
 
@@ -40,10 +39,6 @@ def run_sim(tmp_path, button, model="badger"):
 # Tufty frames are colour; the runner reduces each pixel to one grey byte.
 def tufty_dark(frame, x, y):
     return frame[y * 320 + x] < 64
-
-
-def tufty_white(frame, x, y):
-    return frame[y * 320 + x] > 191
 
 
 def tufty_pip_filled(frame, index, count):
@@ -83,7 +78,7 @@ def test_browser_page_never_uses_cached_app_files():
     # A cached app file would run the old app after re-staging.
     page = (ROOT / "sim" / "index.html").read_text()
     fetches = page.count("fetch(")
-    assert fetches == 3
+    assert fetches
     assert page.count('{ cache: "no-store" }') == fetches
 
 

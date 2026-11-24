@@ -4,7 +4,13 @@
 `badgeware-badger2350-asyncify` and `badgeware-tufty2350-asyncify` CI
 artifacts from [pimoroni/badgeware-wasm](https://github.com/pimoroni/badgeware-wasm),
 from the same run, committed here because GitHub deletes CI artifacts after
-90 days.
+90 days. They run with the firmware Python from `vendor/badger2350` and
+`vendor/tufty2350`.
+
+`VERSION.json` is the machine-readable pin (build commit, run and date, and
+each badge's firmware tag) that `tools/update_sim.py` reads and writes. This
+file is the record for people; `tests/tools/test_update_sim.py` checks that the two
+name the same build.
 
 |                 |                                            |
 | --------------- | ------------------------------------------ |
@@ -12,9 +18,26 @@ from the same run, committed here because GitHub deletes CI artifacts after
 | Workflow run    | `35841227054` (2026-09-23)                 |
 | Badger artifact | `10740953689`, expires 2026-12-22          |
 | Tufty artifact  | `10741935374`, expires 2026-12-22          |
+| Firmware        | `v3.1.1` (Badger and Tufty submodules)     |
 | Licence         | MIT, Copyright (c) Pimoroni Ltd            |
 
-To replace them, download newer artifacts:
+## Checking for and pulling newer builds
+
+With the GitHub CLI logged in (`gh auth login`), from the repository root:
+
+```sh
+python3 -m tools.update_sim --check   # pinned vs latest; exits 1 if newer
+python3 -m tools.update_sim           # download the newest builds, move the submodules
+```
+
+The update downloads both builds and checks out the latest firmware tag in
+each submodule, and only then replaces `badger/`, `tufty/` and
+`VERSION.json`; if anything fails first, nothing here changes. Afterwards,
+update the table above (commit, run, artifact ids from
+`gh run view <run-id> -R pimoroni/badgeware-wasm`), recheck the host contract
+below, run `.venv/bin/pytest`, and commit `sim/wasm` and `vendor/`.
+
+To do it by hand, download newer artifacts:
 
 ```sh
 gh run download -R pimoroni/badgeware-wasm <run-id> -n badgeware-badger2350-asyncify -D sim/wasm/badger

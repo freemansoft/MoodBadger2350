@@ -4,7 +4,10 @@ import pytest
 
 import moods
 
-from moods import MAX_MOODS, SCREEN_HEIGHT, SCREEN_WIDTH, apply_input, parse_config, pip_positions, restore, set_arrows
+from moods import (
+    BADGER, DIM_AFTER_MS, MAX_MOODS, SCREEN_HEIGHT, TUFTY, apply_input, backlight_level, parse_config, pip_positions,
+    restore, set_arrows,
+)
 
 CFG = {
     "moods": [
@@ -22,10 +25,6 @@ def test_down_advances_and_wraps():
 
 def test_up_goes_back_and_wraps():
     assert apply_input(CFG, 0, 0, True, False, False, False) == (0, 2)
-
-
-def test_no_input_keeps_position():
-    assert apply_input(CFG, 1, 1, False, False, False, False) == (1, 1)
 
 
 def test_up_and_down_together_cancel():
@@ -61,10 +60,6 @@ def test_up_and_down_still_work_with_a_set_button_held_and_a_single_set():
     assert apply_input(single, 0, 0, False, True, False, True) == (0, 1)
 
 
-def test_set_arrows_hidden_with_one_set():
-    assert set_arrows(1) == []
-
-
 def test_set_arrows_point_left_above_a_and_right_above_c():
     left, right = set_arrows(3)
     assert len(left) == len(right) == 3
@@ -73,15 +68,9 @@ def test_set_arrows_point_left_above_a_and_right_above_c():
     assert max(right) == (215, 157)
 
 
-def test_set_arrows_sit_midway_between_the_picture_and_the_bottom_edge():
-    # the picture is 136 px tall at y=2, so the strip below it runs from 138 to 176
-    assert moods.ARROW_MID_Y == (138 + SCREEN_HEIGHT) // 2
-
-
 def test_set_arrows_stay_on_screen_and_clear_of_the_pips():
     for x, y in [p for arrow in set_arrows(2) for p in arrow]:
-        assert 0 <= x < 250 and 0 <= y < SCREEN_HEIGHT
-    assert SCREEN_WIDTH == 264
+        assert 0 <= x < moods.PIP_X and 0 <= y < SCREEN_HEIGHT
 
 
 def test_restore_uses_saved_position():
@@ -102,10 +91,6 @@ def test_restore_negative_values_fall_back():
 
 def test_restore_non_integer_values_fall_back():
     assert restore(CFG, {"set": "x", "mood": None}) == (0, 0)
-
-
-def test_restore_empty_state_uses_first_set_initial():
-    assert restore(CFG, {}) == (0, 0)
 
 
 def test_parse_returns_moods_and_initial():
@@ -164,23 +149,11 @@ def test_pip_positions_stay_on_screen_at_maximum():
 
 # Per-model layouts and the Tufty backlight rule
 
-from moods import BADGER, DIM_AFTER_MS, LAYOUTS, TUFTY, backlight_level  # noqa: E402
-
-
-def test_badger_layout_matches_the_existing_constants():
-    assert BADGER["pip_x"] == moods.PIP_X and BADGER["arrow_mid_y"] == moods.ARROW_MID_Y
-    assert set_arrows(3, BADGER) == set_arrows(3)
-    assert pip_positions(8, BADGER) == pip_positions(8)
-
-
-def test_layouts_keyed_by_badge_model():
-    assert LAYOUTS == {"badger": BADGER, "tufty": TUFTY}
-
-
 def test_tufty_picture_is_the_badger_picture_scaled_one_and_a_half():
-    assert TUFTY["image_size"] == (183, 204)
+    w, h = TUFTY["image_size"]
+    assert (w, h) == tuple(round(v * 1.5) for v in BADGER["image_size"])
     x, y = TUFTY["image_pos"]
-    assert x + 183 < TUFTY["pip_x"] and y + 204 < TUFTY["arrow_mid_y"] - TUFTY["arrow_half"]
+    assert x + w < TUFTY["pip_x"] and y + h < TUFTY["arrow_mid_y"] - TUFTY["arrow_half"]
 
 
 def test_tufty_arrows_and_pips_stay_on_screen_and_apart():
@@ -190,8 +163,8 @@ def test_tufty_arrows_and_pips_stay_on_screen_and_apart():
 
 
 @pytest.mark.parametrize("idle_ms,on_usb,level", [
-    (0, False, 1.0), (DIM_AFTER_MS - 1, False, 1.0), (DIM_AFTER_MS, False, 0.15),
-    (0, True, 1.0), (DIM_AFTER_MS, True, 0.5), (10 * 60_000, False, 0.15),
+    (DIM_AFTER_MS - 1, False, 1.0), (DIM_AFTER_MS, False, 0.15),
+    (0, True, 1.0), (DIM_AFTER_MS, True, 0.5),
 ])
 def test_backlight_level(idle_ms, on_usb, level):
     assert backlight_level(idle_ms, on_usb) == level

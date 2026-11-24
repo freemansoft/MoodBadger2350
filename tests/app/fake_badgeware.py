@@ -16,7 +16,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-APP_DIR = Path(__file__).resolve().parent.parent / "badger" / "mood_badger"
+APP_DIR = Path(__file__).resolve().parents[2] / "badger" / "mood_badger"
 
 BUTTON_A, BUTTON_B, BUTTON_C = "A", "B", "C"
 BUTTON_UP, BUTTON_DOWN, BUTTON_HOME = "UP", "DOWN", "HOME"

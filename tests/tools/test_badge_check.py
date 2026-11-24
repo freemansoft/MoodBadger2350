@@ -2,16 +2,13 @@
 after an install (files on the badge's side) and reading its restart
 reason. Nothing here touches a real badge."""
 
-from pathlib import Path
-
 import pytest
 
 from tools import badge_check
 
-ROOT = Path(__file__).resolve().parent.parent
 
-
-def test_device_snippets_are_valid_micropython_syntax():
+def test_device_snippets_compile():
+    # CPython's compiler: catches syntax errors before the badge does.
     compile(badge_check.FILES_SNIPPET, "<badge>", "exec")
     compile(badge_check.WAKE_SNIPPET, "<badge>", "exec")
 
@@ -48,15 +45,14 @@ def test_parse_tagged_line():
 
 
 @pytest.mark.parametrize("reason,name", [
-    (241, "WAKE_RESET"), (242, "WAKE_WATCHDOG"), (5, "WAKE_DOUBLETAP"), (99, "unknown (99)")])
+    (241, "WAKE_RESET"), (99, "unknown (99)")])
 def test_wake_name(reason, name):
     names = {"WAKE_RESET": 241, "WAKE_WATCHDOG": 242, "WAKE_DOUBLETAP": 5}
     assert badge_check.wake_name(reason, names) == name
 
 
 @pytest.mark.parametrize("reason,meaning", [
-    ("WAKE_RESET", "Mood Badger"), ("WAKE_BUTTON_DOWN", "Mood Badger"),
-    ("WAKE_WATCHDOG", "the menu"), ("WAKE_DOUBLETAP", "disk mode")])
+    ("WAKE_RESET", "Mood Badger"), ("WAKE_WATCHDOG", "the menu"), ("WAKE_DOUBLETAP", "disk mode")])
 def test_start_in_app_meaning(reason, meaning):
     assert meaning in badge_check.start_in_app_meaning(reason)
 

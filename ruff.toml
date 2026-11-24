@@ -1,9 +1,15 @@
 # Lint rules for the whole repo: Pimoroni's own (the file their badge
 # firmware CI uses, identical in vendor/badger2350 and vendor/tufty2350),
 # so the app, boot files, tools, tests and simulator all follow the same
-# rules. Needs the submodules: git submodule update --init
+# rules. extend takes one file; tests/project/test_ruff_config.py fails if the
+# Badger's and the Tufty's ever differ.
+# Needs the submodules: git submodule update --init
 #
 #   .venv/bin/ruff check .
+#
+# Only `ruff check` is used, not `ruff format`: Pimoroni's firmware CI
+# (vendor/*/ci/python.sh) only runs the linter, and the formatter would
+# rewrite most files in the repo.
 extend = "vendor/badger2350/ci/ruff.toml"
 
 # The firmware is Pimoroni's to lint; sim/dist is a staged copy and

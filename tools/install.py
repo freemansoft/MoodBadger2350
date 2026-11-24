@@ -134,7 +134,12 @@ def install_app(src, root):
 
     if target.exists():
         target.rename(old)
-    staging.rename(target)
+    try:
+        staging.rename(target)
+    except OSError:
+        if old.exists():
+            old.rename(target)  # put the installed app back
+        raise
     if old.exists():
         _remove_tree(old)
     remove_appledouble(target)

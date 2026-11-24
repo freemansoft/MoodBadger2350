@@ -1,5 +1,5 @@
-pillow
-pytest
-mpy-cross
-ruff
-mpremote
+pillow==13.0.0
+pytest==9.2.0
+mpy-cross==1.29.0.post2
+ruff==0.17.6
+mpremote==1.29.0

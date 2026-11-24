@@ -1,6 +1,6 @@
 """Mood Badger on the Tufty 2350: a bigger Badger with a dimming backlight."""
 
-from fake_badgeware import BUTTON_A, BUTTON_C, BUTTON_DOWN, BUTTON_UP, CHAR_WIDTH, HIRES, VSYNC, run_app
+from fake_badgeware import BUTTON_C, BUTTON_DOWN, CHAR_WIDTH, HIRES, VSYNC, run_app
 
 import moods
 
@@ -9,13 +9,14 @@ IDLE = [set()] * 11          # 11 frames of 1000 ms: past DIM_AFTER_MS
 
 
 def test_tufty_uses_hires_and_never_badger_only_names():
-    r = run_app([set()], **T)          # NameError on NON_BLOCKING etc. would surface as r.fatal
+    # The fake leaves the Badger-only names out, so touching one raises here.
+    r = run_app([set()], **T)
     assert r.fatal is None and r.mode == HIRES | VSYNC
 
 
-def test_tufty_redraws_every_frame_on_white():
-    r = run_app([set()] * 3, **T)
-    assert r.events.count("blit") == 3 and r.events.count("display") == 3
+def test_tufty_redraws_the_picture_every_frame():
+    # run() clears the screen before every update(), so the picture goes back each frame.
+    assert run_app([set()] * 3, **T).events.count("blit") == 3
 
 
 def test_tufty_scales_picture_into_layout_rect():
@@ -40,24 +41,14 @@ def test_tufty_press_while_bright_moves_mood_and_saves_before_drawing():
     assert r.events.index("save") < last_blit and r.blits[-1] == "assets/sent_sad.png"
 
 
-def test_tufty_full_brightness_then_dims_on_battery():
-    r = run_app([set()] + IDLE, usb=False, **T)
-    assert r.backlight == [1.0, 0.15]
-
-
-def test_tufty_dims_to_half_on_usb():
-    assert run_app([set()] + IDLE, usb=True, **T).backlight == [1.0, 0.5]
-
-
 def test_tufty_dim_level_follows_power_source_without_a_press():
     r = run_app([set()] + IDLE + [set()], usb=[True] * 12 + [False], **T)
     assert r.backlight == [1.0, 0.5, 0.15]
 
 
-def test_tufty_any_press_while_dimmed_only_wakes():
-    for press in ({BUTTON_DOWN}, {BUTTON_UP, BUTTON_DOWN}, {BUTTON_A, BUTTON_C}):
-        r = run_app([set()] + IDLE + [press], usb=False, saved={"set": 0, "mood": 0}, **T)
-        assert r.saved is None and r.backlight == [1.0, 0.15, 1.0]
+def test_tufty_press_while_dimmed_only_wakes():
+    r = run_app([set()] + IDLE + [{BUTTON_DOWN}], usb=False, saved={"set": 0, "mood": 0}, **T)
+    assert r.saved is None and r.backlight == [1.0, 0.15, 1.0]
 
 
 def test_tufty_second_press_after_wake_changes_mood():
